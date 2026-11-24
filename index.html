@@ -684,7 +684,9 @@ padding: 8mm;
       <button class="btn-add" style="background: #0f766e;" onclick="exportBackup()" title="Aktuellen Stand als Datei auf PC speichern">Backup</button>
 
     <button class="btn-add" style="background:#3b82f6;" onclick="document.getElementById('backup-file-input').click()" title="Gespeicherte Backup-Datei laden">📂 Laden</button>
-    <input type="file" id="backup-file-input" accept=".json" style="display:none;" onchange="importBackup(event)">
+<input type="file" id="backup-file-input" accept=".json,application/json,text/plain,*/*"
+style="display:none;" onchange="importBackup(event)">
+
     <button class="btn-print" onclick="window.print()">Drucken / PDF</button>
     <button class="btn-reset" onclick="resetAllData()">Zurücksetzen</button>
   </div>
