@@ -1,0 +1,3473 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHOI-Abrechnung & Warenwirtschaft (Lieferschein 8367/1A)</title>
+<style>
+:root {
+  --bg: #f1f5f9;
+  --paper: #ffffff;
+  --border: #cbd5e1;
+  --primary: #1e3a8a;
+  --primary-hover: #1e40af;
+  --accent: #0f766e;
+  --text: #0f172a;
+  --muted: #64748b;
+  --row-alt: #f8fafc;
+  --input-bg: #eff6ff;
+  --coffee-bg: #fefce8;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* Top Navigation Bar */
+.navbar {
+  background-color: var(--primary);
+  color: white;
+  padding: 12px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  gap: 10px;
+}
+
+.navbar-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+}
+
+.nav-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+.nav-btn.active {
+  background: #ffffff;
+  color: var(--primary);
+  border-color: #ffffff;
+}
+
+.action-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-print {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.btn-reset {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.btn-add {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.btn-add:hover {
+  background: var(--primary-hover);
+}
+
+.btn-del {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.btn-del:hover {
+  background: #fecaca;
+}
+
+/* Main Container */
+.container {
+  max-width: 1450px;
+  margin: 20px auto;
+  padding: 0 15px 40px 15px;
+}
+
+/* MHD Alert Banner */
+.mhd-banner {
+  background: #fef2f2;
+  border: 2px solid #ef4444;
+  color: #7f1d1d;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 18px;
+  display: none;
+}
+
+.mhd-banner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.mhd-banner-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.view-section {
+  display: none;
+}
+
+.view-section.active {
+  display: block;
+}
+
+/* Paper / A4 Sheet Style for 1:1 Form */
+.paper-sheet {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  padding: 25px 30px;
+  margin-bottom: 25px;
+  border-radius: 4px;
+}
+
+.doc-header {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 0.8fr;
+  gap: 15px;
+  border-bottom: 2px solid #000;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.doc-header-box {
+  border-left: 1px dashed #666;
+  padding-left: 10px;
+}
+
+.doc-sub-header {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 15px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.doc-info-banner {
+  background: #f8fafc;
+  border: 1px solid #94a3b8;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 5px 6px;
+  text-align: left;
+}
+
+th {
+  background-color: #e2e8f0;
+  font-weight: 700;
+  color: #1e293b;
+  position: sticky;
+  top: 56px;
+  z-index: 10;
+}
+
+#plan-editor-overlay th {
+top: 0;
+}
+
+
+
+tr:nth-child(even) {
+  background-color: var(--row-alt);
+}
+
+tr.coffee-row {
+  background-color: var(--coffee-bg);
+}
+
+tr.mhd-expired-row {
+  background-color: #fee2e2 !important;
+}
+
+tr.mhd-warning-row {
+  background-color: #fef3c7 !important;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.center {
+  text-align: center;
+}
+
+/* Editable Inputs */
+input[type="number"], input[type="text"], input[type="date"], select {
+  width: 100%;
+  padding: 4px 5px;
+  border: 1px solid #93c5fd;
+  background-color: var(--input-bg);
+  border-radius: 3px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+input[type="number"] {
+  text-align: right;
+}
+
+/* Alles in Tabellen zentrieren, außer Artikelname (2. Spalte) */
+th, td, .num, .center {
+  text-align: center !important;
+  font-variant-numeric: tabular-nums;
+}
+table th:nth-child(2),
+table td:nth-child(2) {
+  text-align: left !important;
+}
+/* Ausnahme für Zählerstände-Tabelle (Standort & Automaten-Nr. linksbündig lassen, falls gewünscht – sonst diese 3 Zeilen weglassen) */
+#tbody-meters td:nth-child(1),
+#tbody-meters td:nth-child(2) {
+  text-align: left !important;
+}
+
+/* Zahlenfelder ebenfalls zentrieren */
+input[type="number"] {
+  text-align: center !important;
+  cursor: pointer;
+}
+
+/* Taschenrechner / Schnellauswahl Popup (1-30) */
+.numpad-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+.numpad-modal {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 18px;
+  width: 95%;
+  max-width: 380px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  border: 1px solid #cbd5e1;
+}
+.numpad-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: var(--primary);
+}
+.numpad-display {
+  width: 100%;
+  font-size: 1.4rem !important;
+  font-weight: 700;
+  text-align: center !important;
+  padding: 8px !important;
+  margin-bottom: 12px;
+  background: #f8fafc !important;
+  border: 2px solid var(--primary) !important;
+}
+.numpad-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.numpad-btn {
+  background: #eff6ff;
+  border: 1px solid #93c5fd;
+  color: #1e3a8a;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 10px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.numpad-btn:hover {
+  background: #dbeafe;
+}
+.numpad-btn.zero-btn {
+  grid-column: span 2;
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+.numpad-actions {
+  display: flex;
+  gap: 8px;
+}
+
+
+
+
+input[type="text"].text-left, input[type="date"], select {
+  text-align: left;
+}
+
+input:focus, select:focus {
+  outline: 2px solid var(--primary);
+  background-color: #ffffff;
+}
+
+.calc-cell {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.highlight-pos {
+  color: #047857;
+}
+
+.highlight-neg {
+  color: #b91c1c;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #fef08a;
+  color: #854d0e;
+  border: 1px solid #fde047;
+}
+
+.badge-mhd-ok {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.badge-mhd-warn {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.badge-mhd-exp {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+/* Mehrere MHDs in einer Spalte */
+.mhd-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.mhd-entry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 0.78rem;
+}
+.mhd-entry input[type="number"] {
+  width: 46px;
+  padding: 2px;
+  font-size: 0.78rem;
+}
+.mhd-entry input[type="date"] {
+  width: 112px;
+  padding: 2px;
+  font-size: 0.78rem;
+}
+.btn-mhd-add {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-mhd-del {
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 3px;
+}
+
+
+/* Add Article Form Box */
+.add-article-box {
+  background: #f8fafc;
+  border: 1px solid #94a3b8;
+  border-radius: 6px;
+  padding: 15px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+.add-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 3px;
+}
+
+/* Summary / Zählerstände Sheet 3 */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  margin-top: 20px;
+}
+
+.summary-box {
+  border: 1px solid #94a3b8;
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 4px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.summary-row.total {
+  border-top: 2px solid #000;
+  border-bottom: 2px solid #000;
+  font-weight: 800;
+  font-size: 1rem;
+  margin-top: 8px;
+  padding: 8px 0;
+  background: #e2e8f0;
+}
+
+/* Info Cards in Bestellung & Inventur */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  max-width: 260px;
+  text-align: left !important;
+  padding: 7px 10px !important;
+}
+
+@media print {
+  .navbar, .no-print, .mhd-banner {
+    display: none !important;
+  }
+
+  body.printing-mhd-pdf .container {
+    display: none !important;
+  }
+  body.printing-mhd-pdf #mhd-pdf-print-area {
+    display: block !important;
+    padding: 10mm;
+  }
+
+body.printing-refill-pdf .container {
+display: none !important;
+}
+body.printing-refill-pdf #refill-sheet-print-area {
+display: block !important;
+padding: 8mm;
+}
+
+
+
+
+  body {
+    background: white;
+  }
+  .container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .paper-sheet {
+    box-shadow: none;
+    border: none;
+    padding: 5mm;
+    page-break-after: always;
+  }
+  input {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  th {
+    position: static;
+  }
+}
+/* Standort-Aufteilung & Badges */
+.loc-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+}
+.loc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  background: #f8fafc;
+  padding: 3px 7px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+.loc-row span {
+  text-align: left;
+  font-weight: 600;
+  color: #334155;
+}
+.loc-row input[type="number"] {
+  width: 54px;
+  padding: 2px 4px;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+.mhd-entry select {
+  width: auto;
+  max-width: 115px;
+  padding: 2px;
+  font-size: 0.75rem;
+}
+.loc-badge {
+  background: #e0e7ff;
+  color: #1e3a8a;
+  border: 1px solid #c7d2fe;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+
+</style>
+</head>
+<body>
+
+<div class="navbar no-print">
+  <div class="navbar-title">AHOI-Abrechnung & Warenwirtschaft</div>
+  <div class="nav-tabs">
+    <button class="nav-btn active" onclick="switchTab('abrechnung', this)">1. Abrechnung </button>
+    <button class="nav-btn" onclick="switchTab('inventur', this)">2. Inventur & MHD</button>
+    <button class="nav-btn" onclick="switchTab('bestellung', this)">3. Bestellung</button>
+  </div>
+    <div class="action-btns">
+      <button class="btn-add" style="background: #d97706;" onclick="starteNeueAbrechnungsperiode()" title="Heutigen Bestand & Zähler NEU als Startwerte für die nächste Abrechnung übernehmen">Neue Periode</button>
+      <select id="archiv-select" onchange="ladeAusArchiv(this.value)" title="Abgeschlossene Perioden aufrufen" style="width: auto; max-width: 195px; padding: 7px 10px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; background: #ffffff; color: #1e3a8a; border: none; cursor: pointer;">
+        <option value="">📂 Archiv (0)</option>
+      </select>
+      <button type="button" class="btn-del" onclick="loescheAusArchiv()" title="Einzelne archivierte Periode löschen" style="padding: 7px 10px; font-size: 0.85rem;">🗑️</button>
+
+
+      <!-- NEU: Button für wöchentlichen Reset -->
+      <button class="btn-add" style="background: #8b5cf6;" onclick="naechsteWocheWarenausgang()" title="Warenausgang für neue Woche auf 0 setzen und Datum vermerken">Nächste Woche</button>
+      <button class="btn-add" style="background: #0f766e;" onclick="exportBackup()" title="Aktuellen Stand als Datei auf PC speichern">Backup</button>
+
+    <button class="btn-add" style="background:#3b82f6;" onclick="document.getElementById('backup-file-input').click()" title="Gespeicherte Backup-Datei laden">📂 Laden</button>
+    <input type="file" id="backup-file-input" accept=".json" style="display:none;" onchange="importBackup(event)">
+    <button class="btn-print" onclick="window.print()">Drucken / PDF</button>
+    <button class="btn-reset" onclick="resetAllData()">Zurücksetzen</button>
+  </div>
+
+
+</div>
+
+<div class="container">
+
+  <!-- GLOBALE 14-TAGE MHD ABLAUFÜBERWACHUNG -->
+  <div id="mhd-alert-banner" class="mhd-banner no-print">
+    <div class="mhd-banner-header">
+      <span>⚠️ MHD-Ablaufüberwachung (kritisch innerhalb der nächsten 14 Tage):</span>
+      <button class="btn-add" style="padding: 4px 10px; font-size: 0.78rem;" onclick="jumpToMhdFilter()">In Inventur anzeigen</button>
+    </div>
+    <ul id="mhd-alert-list" class="mhd-banner-list"></ul>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- TAB 1: 1:1 BELEG (WARENEIN- & AUSGANG / ABRECHNUNG)                  -->
+  <!-- =================================================================== -->
+  <div id="view-abrechnung" class="view-section active">
+
+    <!-- BLATT 1 SG -->
+    <div class="paper-sheet">
+      <div class="doc-header">
+        <div>
+          <strong>AH Public Vending GmbH</strong><br>
+          Reichertweg 12 &middot; 63069 Offenbach<br>
+          Postfach 100833 &middot; 63008 Offenbach<br>
+          Tel 069-29922999-0 &middot; Fax 069 831059
+        </div>
+
+
+
+      <div class="doc-header-box">
+        * Abrechnungs- und<br>
+        * Lieferschein-Nr.<br>
+        * <input type="text" id="lieferscheinNr" value="" placeholder="leer" class="text-left" style="width: 110px; display: inline-block; font-weight: 700;" oninput="syncLieferscheinNr(this.value)">
+      </div>
+
+        <div class="doc-header-box">
+          * <strong>Blatt: 1 SG</strong> &nbsp;&nbsp;|&nbsp;&nbsp; Tour: <strong>23</strong><br>
+          * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp; Stationsnummer<br>
+          * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp; <strong>57180</strong>
+        </div>
+      </div>
+
+      <div class="doc-sub-header">
+        <div>
+          Herr<br>
+          <strong>David Rosenberger</strong><br>
+          Am Reitacker 27<br>
+          36381 Schlüchtern
+        </div>
+        <div>
+          <strong>AHOI-Abrechnung</strong><br>
+        Lieferschein-Datum: <input type="text" id="lsDate" value="" placeholder="Klick = Datum" title="Klicken, um aktuelles Datum zu übernehmen" class="text-left" style="width: 105px; display:inline-block; cursor:pointer;" onclick="if(!this.value) uebernehmeDatumInLs()" onchange="saveState()">
+        <button type="button" class="no-print" title="Heutiges Datum übernehmen" onclick="uebernehmeDatumInLs()" style="padding: 2px 6px; font-size:0.75rem; cursor:pointer; border:1px solid #93c5fd; background:#eff6ff; border-radius:3px;">⤵</button>
+        &nbsp; Datum: <input type="text" id="docDate" value="" class="text-left" style="width: 105px; display:inline-block;" onchange="saveState()"><br>
+
+          Automaten-Station: <strong>Schlüchtern, Immergut</strong><br>
+          Lieferanschrift: 36381 Schlüchtern, Am Reitacker 27 &nbsp; <strong>RB</strong>
+        </div>
+      </div>
+
+      <div class="doc-info-banner">
+        Logistik-Information für diesen Lieferschein: HV-Nachbestellung - Lieferung erfolgt per UPS. 1 Std vor Lieferung anrufen!
+      </div>
+
+      <table id="table-sheet-1">
+        <thead>
+          <tr>
+            <th style="width: 55px;">Art-Nr.</th>
+            <th>Bezeichnung<br><small>LE / Preis (€)</small></th>
+            <th class="num" style="width:65px;">Best alt</th>
+            <th class="num" style="width:75px;">Zugang<br><small>(Warenein.)</small></th>
+                        <th class="num" style="width:75px;">Retouren</th>
+            <th class="num" style="width: 70px;">Best neu</th>
+            <!-- DIESE ZEILE ÄNDERN (vorher: Kartons) -->
+            <th class="num" style="width:85px;">Warenausgang<br><small>(Entnahme)</small></th>
+            <th class="num" style="width:85px;">Heutiger<br>Bestand</th>
+
+            <th class="num" style="width:80px;">Verkauft<br><small>(Stück)</small></th>
+            <th class="num" style="width:85px;">Verkauft<br><small>(Euro)</small></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-sheet-1"></tbody>
+      </table>
+    </div>
+
+    <!-- BLATT 2 SG -->
+    <div class="paper-sheet">
+      <div class="doc-header">
+        <div>
+          <strong>AH Public Vending GmbH</strong><br>
+          Reichertweg 12 &middot; 63069 Offenbach
+        </div>
+
+
+
+    <div class="doc-header-box">
+      * Abrechnungs- und Lieferschein-Nr.: <strong class="ls-nr-display"></strong>
+    </div>
+
+        <div class="doc-header-box">
+          * <strong>Blatt: 2 SG</strong> | Tour: <strong>23</strong> | Stat.: <strong>57180</strong>
+        </div>
+      </div>
+
+      <table id="table-sheet-2">
+        <thead>
+          <tr>
+            <th style="width: 55px;">Art-Nr.</th>
+            <th>Bezeichnung<br><small>LE / Preis (€)</small></th>
+            <th class="num" style="width:65px;">Best alt</th>
+            <th class="num" style="width:75px;">Zugang<br><small>(Warenein.)</small></th>
+            <th class="num" style="width:75px;">Retouren</th>
+            <th class="num" style="width: 70px;">Best neu</th>
+            <!-- DIESE ZEILE ÄNDERN (vorher: Kartons) -->
+            <th class="num" style="width:85px;">Warenausgang<br><small>(Entnahme)</small></th>
+            <th class="num" style="width: 85px;">Heutiger<br>Bestand</th>
+
+            <th class="num" style="width:80px;">Verkauft<br><small>(Stück)</small></th>
+            <th class="num" style="width:85px;">Verkauft<br><small>(Euro)</small></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-sheet-2"></tbody>
+      </table>
+    </div>
+
+    <!-- BLATT 3 SG: ZÄHLERSTÄNDE & ENDABRECHNUNG -->
+    <div class="paper-sheet">
+      <div class="doc-header">
+        <div>
+          <strong>AH Public Vending GmbH</strong><br>
+          Abrechnung bis zum <strong>17.12.2026, 12.00 Uhr</strong>
+        </div>
+
+
+    <div class="doc-header-box">
+      * Lieferschein-Nr.: <strong class="ls-nr-display"></strong>
+    </div>
+
+        <div class="doc-header-box">
+          * <strong>Blatt: 3 SG</strong> | Tour: <strong>23</strong> | Stat.: <strong>57180</strong>
+        </div>
+      </div>
+
+      <h4>Automaten-Zählerstände</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Standort</th>
+            <th>Automaten-Nr.</th>
+            <th class="num">ALT (€)</th>
+            <th class="num" style="width:140px;">NEU (€)</th>
+            <th class="num" style="width:140px;">DIFFERENZ (€)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-meters"></tbody>
+        <tfoot>
+          <tr style="background:#e2e8f0; font-weight:bold;">
+            <td colspan="4" class="num">Gesamtdifferenz Zählerstände:</td>
+            <td class="num" id="meter-total-diff">0,00 €</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="summary-grid">
+      <div class="summary-box">
+        <h4 style="margin-top:0;">Lieferschein-Info & Notizen</h4>
+        <p style="font-size:0.85rem; margin:6px 0;">Gesamtanzahl Karton (laut Lieferschein): <strong>30</strong> (davon Anbruch: 0)</p>
+        <p style="font-size:0.85rem; margin:6px 0;">Warenwert Lieferung: <strong>2.447,65 €</strong> | Gewicht: <strong>42,556 kg</strong></p>
+        <!-- NEU: Hier erscheint der automatische Vermerk -->
+        <p id="wochen-vermerk" style="font-size:0.85rem; margin:6px 0; color:#1e3a8a; font-weight:600;"></p>
+        <hr>
+
+          <div style="font-size:0.82rem; color:#475569;">
+            <strong>Hinweis:</strong> Die Anzahl der vorhandenen Leergutkisten ist IMMER mit der Angabe auf Ihrer Abrechnung abzugleichen.
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <h4 style="margin-top:0;">Geldabrechnung</h4>
+          <div class="summary-row">
+            <span>Verkauft (automatisch aus Artikeln):</span>
+            <strong id="sum-verkauft">0,00 €</strong>
+          </div>
+          <div class="summary-row">
+            <span>AB Falschgeld (€):</span>
+            <input type="number" step="0.01" id="ab-falschgeld" value="0" style="width: 110px;" oninput="recalcAll()">
+          </div>
+          <div class="summary-row">
+            <span>AB Verlust (€):</span>
+            <input type="number" step="0.01" id="ab-verlust" value="0" style="width: 110px;" oninput="recalcAll()">
+          </div>
+          <div class="summary-row">
+            <span>AB Rückg. Pfand (automatisch aus Art. 155/159/160):</span>
+            <strong id="sum-pfand">0,00 €</strong>
+          </div>
+          <div class="summary-row">
+            <span><strong>PROVISIONS-UMSATZ:</strong></span>
+            <strong id="sum-prov-umsatz">0,00 €</strong>
+          </div>
+          <div class="summary-row">
+            <span>AB Provision (<input type="number" step="0.1" id="prov-pct" value="0" style="width:55px;" oninput="recalcAll()"> %):</span>
+            <strong id="sum-prov-eur">0,00 €</strong>
+          </div>
+          <div class="summary-row">
+            <span>AB a-Konto (€):</span>
+            <input type="number" step="0.01" id="ab-akonto" value="0" style="width: 110px;" oninput="recalcAll()">
+          </div>
+          <div class="summary-row">
+            <span>AB Geldkarte (€):</span>
+            <input type="number" step="0.01" id="ab-geldkarte" value="0" style="width: 110px;" oninput="recalcAll()">
+          </div>
+          <div class="summary-row">
+            <span>AB Sonstiges (€):</span>
+            <input type="number" step="0.01" id="ab-sonstiges" value="0" style="width: 110px;" oninput="recalcAll()">
+          </div>
+          <div class="summary-row total">
+            <span>ZU ÜBERWEISEN:</span>
+            <span id="sum-ueberweisen">0,00 €</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- =================================================================== -->
+  <!-- TAB 2: INVENTUR, MHD-ÜBERWACHUNG & ARTIKELVERWALTUNG                -->
+  <!-- =================================================================== -->
+  <div id="view-inventur" class="view-section">
+    <div class="paper-sheet">
+      <div class="section-header">
+        <div>
+          <h2 style="margin:0;">Inventur, MHD-Kontrolle & Artikelstamm</h2>
+          <p style="margin: 4px 0 0 0; color:var(--muted); font-size:0.9rem;">
+            MHD-Warnung greift automatisch ab <strong>14 Tagen vor Ablauf</strong>. Artikel können hier direkt hinzugefügt oder gelöscht werden.
+          </p>
+        </div>
+
+
+
+
+
+    <div class="no-print" style="display:flex; gap:8px;">
+      <button class="btn-add" style="background:#1e3a8a;" onclick="druckeMhdListePdf()">MHD-Liste PDF</button>
+
+
+<button class="btn-add" style="background: #0369a1;"
+onclick="openPlanEditorModal()">📋 Befüllzettel &amp; Pläne</button>
+
+
+
+
+      <button class="btn-add" style="background:#0f766e;" onclick="addSnackAutomat()">+ Automat</button>
+      <button class="btn-add" onclick="toggleAddArticleForm()">+ Neuer Artikel</button>
+    </div>
+
+      </div>
+
+      <!-- Formular: Neuen Artikel anlegen -->
+      <div id="add-article-box" class="add-article-box no-print">
+        <h4 style="margin: 0 0 10px 0;">Neuen Artikel anlegen</h4>
+        <div class="add-form-grid">
+          <div class="form-group">
+            <label>Art-Nr. *</label>
+            <input type="text" id="new-art" class="text-left" placeholder="z. B. 305">
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Artikelbezeichnung *</label>
+            <input type="text" id="new-name" class="text-left" placeholder="z. B. Snickers 50g">
+          </div>
+          <div class="form-group">
+            <label>LE (Stk./Stange)</label>
+            <input type="number" id="new-le" value="24">
+          </div>
+          <div class="form-group">
+            <label>VK-Preis (€)</label>
+            <input type="number" step="0.05" id="new-preis" value="1.20">
+          </div>
+          <div class="form-group">
+            <label>Anfangsbestand</label>
+            <input type="number" id="new-best" value="0">
+          </div>
+          <div class="form-group">
+            <label>MHD (optional)</label>
+            <input type="date" id="new-mhd">
+          </div>
+          <div class="form-group">
+            <label>Beleg-Blatt</label>
+            <select id="new-page">
+              <option value="1">Blatt 1 SG</option>
+              <option value="2" selected>Blatt 2 SG</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="display:flex; align-items:center; gap:5px; cursor:pointer; padding-bottom:6px;">
+              <input type="checkbox" id="new-coffee" style="width:auto;"> Kaffee-Stange
+            </label>
+          </div>
+          <div class="form-group" style="display:flex; gap:6px;">
+            <button class="btn-print" style="width:100%;" onclick="addNewArticle()">Speichern</button>
+            <button class="btn-reset" onclick="toggleAddArticleForm()">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-bar no-print">
+        <input type="text" id="inv-search" class="search-input" placeholder="Artikelnummer oder Name suchen..." oninput="renderInventurTable()">
+  <select id="inv-plan-filter" onchange="renderInventurTable()" style="width:auto; min-width:220px; padding:7px 10px; background:#eff6ff; border-color:#3b82f6;">
+    <option value="all">Alle Artikel (Standard-Reihenfolge)</option>
+    <option value="903R">Bestückungsplan: 903 R Schlüchtern</option>
+    <option value="929R">Bestückungsplan: 929 R Steinau</option>
+  </select>
+
+  <button type="button" class="btn-add" style="background:#0369a1; padding:7px 12px;" onclick="addArticleToCurrentPlan()">+ Artikel in Plan</button>
+
+
+
+        <label style="font-size:0.85rem; cursor:pointer;">
+          <input type="checkbox" id="inv-only-coffee" onchange="renderInventurTable()"> Nur Kaffee & Heißgetränke
+        </label>
+        <label style="font-size:0.85rem; cursor:pointer; color:#b91c1c; font-weight:600;">
+          <input type="checkbox" id="inv-only-mhd" onchange="renderInventurTable()"> Nur MHD kritisch (&le; 14 Tage / abgelaufen)
+        </label>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:65px;">Art-Nr.</th>
+            <th>Artikel</th>
+        <th class="num" style="width: 92px;">Preis (€)</th>
+        <th class="num" style="width: 80px;">Bestand<br>vorher</th>
+        <th class="num" style="width: 85px;">Kaffee-<br>Stangen</th>
+        <th class="num" style="width: 215px;">Istbestand<br><small>(Zuhause / Automaten)</small></th>
+
+            <th class="num" style="width:80px;">Diff.</th>
+            <th style="width:140px;">MHD</th>
+            <th class="center" style="width:115px;">MHD-Status</th>
+            <th class="num" style="width:100px;">Bestellung<br><small>(Stück / LE)</small></th>
+            <th class="center no-print" style="width:45px;">Akt.</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-inventur"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- TAB 3: BESTELLUNG (KOMPAKT: NUR ART-NR, ARTIKEL, MENGE)             -->
+  <!-- =================================================================== -->
+  <div id="view-bestellung" class="view-section">
+    <div class="paper-sheet">
+      <div class="section-header">
+        <div>
+          <h2 style="margin:0;">Bestellliste (Nachbestellung)</h2>
+          <p style="margin: 4px 0 0 0; color:var(--muted); font-size:0.9rem;">
+            Kompaktansicht mit Artikelnummer, Artikelbezeichnung und Bestellmenge (synchronisiert mit der Inventur).
+          </p>
+        </div>
+        <div class="no-print" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <label style="font-size:0.9rem; font-weight:600; cursor:pointer; background:#eff6ff; padding: 8px 12px; border-radius: 6px; border:1px solid #bfdbfe;">
+            <input type="checkbox" id="best-only-ordered" onchange="renderBestellungTable()"> Nur Artikel mit Bestellung (&gt; 0) anzeigen
+          </label>
+          <button class="btn-add" style="background:#475569;" onclick="kopiereBestellungAlsText()">📋 Text kopieren (Mail/WhatsApp)</button>
+          <button class="btn-add" style="background:#1e3a8a;" onclick="druckeNurBestellung()">🖨️ Nur Bestellung PDF</button>
+          <button class="btn-print" onclick="oeffneWareneingangDialog()">✓ Lieferung als Zugang & MHD übernehmen</button>
+        </div>
+
+      </div>
+
+      <!-- NEU: Wareneingang & MHD Abfrage-Box -->
+      <div id="wareneingang-box" class="add-article-box no-print" style="border: 2px solid #10b981; background: #ecfdf5;">
+        <h4 style="margin: 0 0 6px 0; color: #065f46;">📦 Wareneingang & neues MHD erfassen</h4>
+        <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #047857;">
+          Prüfe die gelieferten Mengen und trage bei Bedarf das neue MHD ein (leer lassen, wenn das alte MHD bestehen bleibt):
+        </p>
+        <table style="background: white; margin-bottom: 12px;">
+          <thead>
+            <tr>
+              <th style="width: 70px;">Art-Nr.</th>
+              <th>Artikel</th>
+              <th class="num" style="width: 110px;">Geliefert (Stk.)</th>
+              <th style="width: 120px;">Bisheriges MHD</th>
+              <th style="width: 155px;">Neues MHD</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-wareneingang-modal"></tbody>
+        </table>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn-reset" onclick="schliesseWareneingangDialog()">Abbrechen</button>
+          <button class="btn-print" onclick="bucheWareneingangMitMhd()">✓ Jetzt verbindlich einbuchen</button>
+        </div>
+      </div>
+
+      <table>
+
+        <thead>
+          <tr>
+            <th style="width: 90px;">Artikelnummer</th>
+            <th>Artikel</th>
+            <th class="center" style="width:90px;">LE (Info)</th>
+            <th class="num" style="width: 140px;">Bestellung (Menge)</th>
+            <th class="num" style="width:130px;">Entspricht Kartons/LE</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-bestellung"></tbody>
+        <tfoot>
+          <tr style="background:#e2e8f0; font-weight:bold;">
+            <td colspan="3" class="num">Gesamtsumme bestellte Einheiten:</td>
+            <td class="num" id="best-total-qty">0</td>
+            <td class="num" id="best-total-le">0 LE</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- SPEZIELLER PDF-DRUCKBEREICH FÜR MHD-LISTE -->
+<div id="mhd-pdf-print-area" style="display:none;"></div>
+
+<!-- SPEZIELLER PDF-DRUCKBEREICH FÜR AUTOMATEN-BEFÜLLZETTEL -->
+<div id="refill-sheet-print-area" style="display:none;"></div>
+
+<!-- BEFÜLLZETTEL & BESTÜCKUNGSPLAN-EDITOR POPUP -->
+<div id="plan-editor-overlay" class="numpad-overlay no-print" onclick="if(event.target===this) closePlanEditorModal()">
+  <div class="numpad-modal" style="max-width: 780px; width: 96%;">
+    <div class="numpad-header">
+      <span>📋 Befüllzettel drucken &amp; Bestückungspläne anpassen</span>
+      <button class="btn-del" onclick="closePlanEditorModal()">X</button>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #cbd5e1; margin-bottom:12px;">
+      <div style="flex:1; min-width:220px;">
+        <label style="font-size:0.75rem; font-weight:700; display:block; margin-bottom:3px;">Automat auswählen (zum Bearbeiten oder Drucken):</label>
+        <select id="plan-editor-select" onchange="renderPlanEditorTable()"></select>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+        <button type="button" class="btn-add" style="background:#0369a1;" onclick="druckeBefuellzettelPdf(document.getElementById('plan-editor-select').value)">🖨️ Nur diesen Zettel drucken</button>
+        <button type="button" class="btn-print" onclick="druckeBefuellzettelPdf('ALL')">🖨️ Alle Zettel (Snacks + Kaffee)</button>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <span style="font-size:0.82rem; color:#475569;">Hier kannst du jederzeit Fächer/Schächte ändern, löschen oder neue Positionen hinzufügen:</span>
+      <button type="button" class="btn-add" style="padding:5px 10px; font-size:0.8rem;" onclick="addPlanEditorRow()">+ Fach / Schacht hinzufügen</button>
+    </div>
+
+    <div style="max-height: 50vh; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 4px; margin-bottom: 12px;">
+      <table style="font-size:0.82rem; margin:0;">
+        <thead>
+          <tr>
+            <th style="width:75px;">Sortier-Nr.</th>
+            <th style="width:140px; text-align:left !important;">Fach / Schacht</th>
+            <th style="text-align:left !important;">Artikel (Art-Nr. &amp; Name)</th>
+            <th style="width:85px;">Max (Stangen/Stk.)</th>
+            <th style="width:45px;">Akt.</th>
+          </tr>
+        </thead>
+        <tbody id="plan-editor-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="numpad-actions">
+      <button type="button" class="btn-reset" style="flex:1;" onclick="closePlanEditorModal()">Schließen</button>
+      <button type="button" class="btn-print" style="flex:2;" onclick="savePlanEditorChanges()">✓ Änderungen im Plan speichern</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- TASCHENRECHNER POPUP (1-30) -->
+<div id="numpad-overlay" class="numpad-overlay no-print" onclick="if(event.target===this) closeNumpad()">
+  <div class="numpad-modal">
+    <div class="numpad-header">
+      <span id="numpad-title">Menge wählen</span>
+      <button class="btn-del" onclick="closeNumpad()">✕</button>
+    </div>
+    <input type="number" step="any" id="numpad-input" class="numpad-display" onkeydown="if(event.key==='Enter') confirmNumpad()">
+    <div id="numpad-grid" class="numpad-grid"></div>
+    <div class="numpad-actions">
+      <button class="btn-reset" style="flex:1;" onclick="closeNumpad()">Abbrechen</button>
+      <button class="btn-print" style="flex:2;" onclick="confirmNumpad()">Übernehmen</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<!-- AUTOMAT BEFÜLLEN POPUP (ALLE AUTOMATEN AUF EINEN BLICK) -->
+<div id="refill-overlay" class="numpad-overlay no-print" onclick="if(event.target===this) closeRefillModal()">
+  <div class="numpad-modal" style="max-width: 540px;">
+    <div class="numpad-header">
+      <span id="refill-title">Automaten befüllen &amp; zählen</span>
+      <button class="btn-del" onclick="closeRefillModal()">X</button>
+    </div>
+
+    <div style="margin-bottom: 12px; font-size: 0.88rem; color: #334155; background: #f8fafc; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1; display:flex; justify-content:space-between; align-items:center;">
+      <div><strong>Artikel:</strong> <span id="refill-art-name"></span></div>
+      <div><strong>Zuhause:</strong> <span id="refill-home-qty" style="color:#047857; font-weight:700;">0</span> Stk.</div>
+    </div>
+
+    <table style="margin-bottom: 12px; font-size: 0.82rem;">
+      <thead>
+        <tr>
+          <th style="text-align:left !important;">Automat</th>
+          <th class="num" style="width:60px;">Vorher</th>
+          <th class="num" style="width:95px;">IST-Rest<br><small>(vor Füllung)</small></th>
+          <th class="num" style="width:95px;">Nachfüllen<br><small>(+ aus Lager)</small></th>
+          <th class="num" style="width:70px;">Neu</th>
+        </tr>
+      </thead>
+      <tbody id="refill-automaten-tbody"></tbody>
+    </table>
+
+    <div id="refill-summary-box" style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: 6px; padding: 8px 10px; font-size: 0.82rem; margin-bottom: 12px; color: #1e3a8a;">
+    </div>
+
+    <div id="refill-undo-container" style="display:none; margin-bottom: 10px;">
+      <button type="button" class="btn-add" style="width:100%; background:#d97706;" onclick="undoLastRefill()">↺ Letzte Buchung für diesen Artikel rückgängig machen</button>
+    </div>
+
+    <div class="numpad-actions">
+      <button class="btn-reset" style="flex:1;" onclick="closeRefillModal()">Abbrechen</button>
+      <button class="btn-print" style="flex:2;" onclick="confirmRefillModal()">Verbindlich buchen</button>
+    </div>
+  </div>
+</div>
+
+<!-- START-WARNUNG POPUP (MHD & KRITISCHER BESTAND) -->
+<div id="startup-alert-overlay" class="numpad-overlay no-print" onclick="if(event.target===this) closeStartupAlert()">
+  <div class="numpad-modal" style="max-width: 560px; border: 2px solid #ef4444;">
+    <div class="numpad-header" style="color: #b91c1c; border-bottom: 1px solid #fecaca; padding-bottom: 8px;">
+      <span>⚠️ Achtung: Wichtige Hinweise beim Start</span>
+      <button class="btn-del" onclick="closeStartupAlert()">X</button>
+    </div>
+    <div id="startup-alert-content" style="max-height: 60vh; overflow-y: auto; font-size: 0.88rem; margin-bottom: 14px; line-height: 1.45;">
+    </div>
+    <div class="numpad-actions">
+      <button class="btn-add" style="flex: 1; background: #1e3a8a;" onclick="closeStartupAlert(); switchTab('inventur');">Zur Inventur wechseln</button>
+      <button class="btn-print" style="flex: 1;" onclick="closeStartupAlert()">Verstanden &amp; Schließen</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const INITIAL_ITEMS = [
+  {"art": "8", "name": "Coca-Cola 0,51-PEW", "le": 12, "preis": 1.6, "best_alt": 24, "zug": 24, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "11", "name": "Mezzo Mix 0,51-PEW", "le": 12, "preis": 1.6, "best_alt": 24, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "36", "name": "X15 Energy Drink 0,25-Ds.", "le": 24, "preis": 1.5, "best_alt": 11, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "55", "name": "Fuze Tea Peach 0,4 1-PEW", "le": 12, "preis": 1.5, "best_alt": 21, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "80", "name": "00. Iso Sp. Citrus 0,51 PET", "le": 11, "preis": 1.6, "best_alt": 22, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "82", "name": "00.Apfelschorle 0,51 PET", "le": 11, "preis": 1.6, "best_alt": 22, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "90", "name": "Highspeed Bl.Cool 330ml-Ds", "le": 24, "preis": 1.5, "best_alt": 20, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "92", "name": "Red Bull ZERO 250ml-Ds.", "le": 24, "preis": 2.5, "best_alt": 24, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "93", "name": "RB Pistachio&Berri.0,251-D", "le": 24, "preis": 2.5, "best_alt": 24, "zug": 24, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "100", "name": "Red Bull 250 ml-Ds.", "le": 24, "preis": 2.5, "best_alt": 53, "zug": 24, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "155", "name": "Dosen Pfand", "le": 0, "preis": 0.25, "best_alt": 132, "zug": 48, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "159", "name": "Leergut Flaschen", "le": 0, "preis": 0.25, "best_alt": 113, "zug": 24, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "160", "name": "Leergut Kisten", "le": 0, "preis": 1.5, "best_alt": 4, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "207", "name": "Puks Dessertkuchen 62g", "le": 18, "preis": 1.0, "best_alt": 41, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "208", "name": "Mini Cake Vanille 35 g", "le": 27, "preis": 0.6, "best_alt": 26, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "219", "name": "LL Frulito Kaubonbons 80g", "le": 24, "preis": 1.0, "best_alt": 33, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "220", "name": "Fritt 70g Frucht", "le": 30, "preis": 1.0, "best_alt": 25, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "221", "name": "Snatts Mini Brotsnack 35g", "le": 30, "preis": 1.0, "best_alt": 27, "zug": 30, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "225", "name": "Willis Partykuchen 65 g", "le": 35, "preis": 1.0, "best_alt": 35, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "227", "name": "Space Haseln. Schnitten 60g", "le": 48, "preis": 1.0, "best_alt": 48, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "228", "name": "7Days Croissant 60g", "le": 20, "preis": 1.0, "best_alt": 25, "zug": 20, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "231", "name": "Willis Kirschkuchen 90g", "le": 24, "preis": 1.0, "best_alt": 34, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "233", "name": "Mr.Tom Salted Caramel 40g", "le": 36, "preis": 0.8, "best_alt": 36, "zug": 36, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "234", "name": "ChoViva Sun Rice M&C. 40g", "le": 24, "preis": 1.0, "best_alt": 37, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "240", "name": "Hanuta HN-Schnitte 2x22g", "le": 18, "preis": 1.0, "best_alt": 113, "zug": 18, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "244", "name": "KitKat 41.5g", "le": 24, "preis": 1.0, "best_alt": 48, "zug": 24, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "248", "name": "Duplo 2er 36,4g", "le": 24, "preis": 1.2, "best_alt": 46, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "253", "name": "Mogvi Studentenfutter 50g", "le": 40, "preis": 1.0, "best_alt": 40, "zug": 40, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "255", "name": "Trolli Saure Glühwürm.150g", "le": 24, "preis": 1.5, "best_alt": 63, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "257", "name": "Trolli Kiss Erdbeeren 100g", "le": 22, "preis": 1.5, "best_alt": 25, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "263", "name": "Keks'n Cream Milk 2er 38g", "le": 18, "preis": 0.8, "best_alt": 17, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "267", "name": "Stroopwaffel Space 2er 80g", "le": 24, "preis": 1.0, "best_alt": 28, "zug": 0, "page": 1, "is_coffee": false, "mhd": ""},
+  {"art": "270", "name": "Hit Minis Cocoa 130g", "le": 24, "preis": 1.2, "best_alt": 21, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "272", "name": "Croco Snack Bacon 50g", "le": 14, "preis": 1.0, "best_alt": 39, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "276", "name": "Corny SCHOKO 50g", "le": 24, "preis": 1.0, "best_alt": 45, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "277", "name": "Corny BANANE 50g", "le": 24, "preis": 1.0, "best_alt": 39, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "278", "name": "Amer. Cookies ChokoLatte50g", "le": 40, "preis": 1.0, "best_alt": 62, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "282", "name": "Bifi Roll 40g", "le": 24, "preis": 1.5, "best_alt": 65, "zug": 48, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "289", "name": "Xox Kart.-Chips Paprika30g", "le": 20, "preis": 1.0, "best_alt": 40, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "291", "name": "Twix 50 g", "le": 32, "preis": 1.2, "best_alt": 72, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "292", "name": "Bounty 57g", "le": 24, "preis": 1.5, "best_alt": 47, "zug": 24, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "293", "name": "Mars 51g", "le": 32, "preis": 1.2, "best_alt": 36, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "299", "name": "Kinder Bueno 2er-Rgl. 43g", "le": 30, "preis": 1.5, "best_alt": 57, "zug": 30, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "400", "name": "Pa-Cup XL Lav. Dolce we./Zu", "le": 17, "preis": 0.0, "best_alt": 935, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "401", "name": "Pa-Cup XL Lav.Dolce weiss", "le": 17, "preis": 0.0, "best_alt": 935, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "405", "name": "Pa-Cup Jac.Krön. weiss/Zu.", "le": 17, "preis": 0.0, "best_alt": 561, "zug": 85, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "406", "name": "Pa-Cup Jac.Krönung weiss", "le": 17, "preis": 0.0, "best_alt": 850, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "407", "name": "Pa-Cup Jac. Krön.schw./Zu.", "le": 17, "preis": 0.0, "best_alt": 323, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "408", "name": "Pa-Cup Jac.Krön. schwarz", "le": 17, "preis": 0.0, "best_alt": 306, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "409", "name": "Pa-Cu Nesc. Espresso m.Zu.", "le": 17, "preis": 0.0, "best_alt": 986, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "410", "name": "Pa-Cup Lav. Café Vanilla", "le": 15, "preis": 0.0, "best_alt": 210, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "412", "name": "Pa.Cup Chocamento", "le": 15, "preis": 0.0, "best_alt": 225, "zug": 75, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "413", "name": "Pa-Cup Bensd.Choco-Cappu.", "le": 15, "preis": 0.0, "best_alt": 180, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "416", "name": "Pa-Cup Dallmayr Lemon Tea", "le": 17, "preis": 0.0, "best_alt": 408, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "420", "name": "PA-Cup Klare Rindsbouillon", "le": 17, "preis": 0.0, "best_alt": 204, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "421", "name": "Pa-Cu Knorr Hühnersup/Nud.", "le": 15, "preis": 0.0, "best_alt": 300, "zug": 75, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "422", "name": "Pa-Cu Knorr Gemü.Su./Crou.", "le": 15, "preis": 0.0, "best_alt": 195, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "423", "name": "PA-Cu Knorr Tomatensuppe", "le": 15, "preis": 0.0, "best_alt": 405, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "424", "name": "PA-Cup Knorr Gulaschsuppe", "le": 15, "preis": 0.0, "best_alt": 270, "zug": 0, "page": 2, "is_coffee": true, "mhd": ""},
+  {"art": "718", "name": "Swift Clean Foam 400ml-Ds.", "le": 1, "preis": 0.0, "best_alt": 3, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "720", "name": "Küchenrollen", "le": 1, "preis": 0.0, "best_alt": 8, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "721", "name": "Schwammtücher", "le": 1, "preis": 0.0, "best_alt": 10, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""},
+  {"art": "722", "name": "Bürste", "le": 1, "preis": 0.0, "best_alt": 2, "zug": 0, "page": 2, "is_coffee": false, "mhd": ""}
+];
+
+const INITIAL_METERS = [
+  { loc: "Schlüchtern. Immergut GmbH", id: "903 R", alt: 10035.55, neu: 10035.55 },
+  { loc: "Schlüchtern. Immergut GmbH", id: "908 W", alt: 72796.62, neu: 72796.62 },
+  { loc: "Schlüchtern. Immergut GmbH", id: "924 W", alt: 145864.37, neu: 145864.37 },
+  { loc: "Steinau.Logistics Fulda GmbH", id: "927 W", alt: 0.00, neu: 0.00 },
+  { loc: "Steinau.Logistics Fulda GmbH", id: "929 R", alt: 0.00, neu: 0.00 }
+];
+
+
+const DEFAULT_SNACK_AUTOMATEN = [
+  { id: "903R", name: "903 R Schlüchtern" },
+  { id: "929R", name: "929 R Steinau" }
+];
+
+
+// Exakter Bestückungsplan (order = Reihenfolge von oben links nach unten rechts, slot = Anzeige, max = Kapazität)
+const DEFAULT_PLANS = {
+  "903R": {
+    "272": { order: 101, slot: "F1 / S1", max: 9 },
+    "228": { order: 102, slot: "F1 / S2, S4", max: 18 },
+    "270": { order: 103, slot: "F1 / S3", max: 9 },
+    "255": { order: 201, slot: "F2 / S1", max: 16 },
+    "267": { order: 202, slot: "F2 / S2", max: 22 },
+    "219": { order: 203, slot: "F2 / S3", max: 16 },
+    "282": { order: 204, slot: "F2 / S4 + F4 / S2", max: 26 },
+    "231": { order: 301, slot: "F3 / S1", max: 22 },
+    "257": { order: 302, slot: "F3 / S2", max: 16 },
+    "278": { order: 303, slot: "F3 / S3", max: 13 },
+    "207": { order: 304, slot: "F3 / S4", max: 13 },
+    "292": { order: 401, slot: "F4 / S1", max: 16 },
+    "277": { order: 403, slot: "F4 / S3", max: 16 },
+    "234": { order: 404, slot: "F4 / S4", max: 16 },
+    "220": { order: 405, slot: "F4 / S5", max: 13 },
+    "276": { order: 406, slot: "F4 / S6", max: 16 },
+    "221": { order: 407, slot: "F4 / S7, S8", max: 26 },
+    "263": { order: 501, slot: "F5 / S1", max: 22 },
+    "240": { order: 502, slot: "F5 / S2, S3", max: 32 },
+    "248": { order: 504, slot: "F5 / S4", max: 22 },
+    "293": { order: 505, slot: "F5 / S5", max: 16 },
+    "291": { order: 506, slot: "F5 / S6, S7", max: 32 },
+    "299": { order: 508, slot: "F5 / S8", max: 16 },
+    "55":  { order: 601, slot: "F6 / S1, S2", max: 12 },
+    "90":  { order: 603, slot: "F6 / S3, S4", max: 12 },
+    "36":  { order: 605, slot: "F6 / S5, S6", max: 12 },
+    "100": { order: 607, slot: "F6 / S7, S8", max: 12 }
+  },
+
+  "929R": {
+    "289": { order: 10, slot: "Fach 10 (Doppelspirale)", max: 10 },
+    "282": { order: 12, slot: "Fach 12", max: 12 },
+    "255": { order: 20, slot: "Fach 20 (Doppelspirale)", max: 10 },
+    "233": { order: 22, slot: "Fach 22", max: 15 },
+    "227": { order: 30, slot: "Fach 30 (Doppelspirale)", max: 12 },
+    "244": { order: 32, slot: "Fach 32", max: 18 },
+    "225": { order: 40, slot: "Fach 40 (Doppelspirale)", max: 10 },
+    "240": { order: 42, slot: "Fach 42", max: 18 },
+    "253": { order: 50, slot: "Fach 50", max: 12 },
+    "292": { order: 51, slot: "Fach 51", max: 12 },
+    "299": { order: 52, slot: "Fach 52", max: 12 },
+    "100": { order: 60, slot: "Fach 60", max: 6 },
+    "92":  { order: 61, slot: "Fach 61 (Red Bull Zero)", max: 6 },
+    "93":  { order: 62, slot: "Fach 62 (RB Winter/Pistachio)", max: 6 },
+    "8":   { order: 90, slot: "Wahl 90 (Schacht)", max: 20 },
+    "11":  { order: 91, slot: "Wahl 91 (Schacht)", max: 20 },
+    "82":  { order: 92, slot: "Wahl 92 (Schacht)", max: 20 },
+    "80":  { order: 93, slot: "Wahl 93 (Schacht)", max: 20 }
+  }
+};
+
+
+
+
+
+function getHeuteDE() {
+  const heute = new Date();
+  const tag = String(heute.getDate()).padStart(2, "0");
+  const monat = String(heute.getMonth() + 1).padStart(2, "0");
+  const jahr = heute.getFullYear();
+  return tag + "." + monat + "." + jahr;
+}
+
+function uebernehmeDatumInLs() {
+  const aktuellesDatum = document.getElementById("docDate").value || getHeuteDE();
+  document.getElementById("lsDate").value = aktuellesDatum;
+  saveState();
+}
+
+// App State
+let state = {
+  items: [],
+  meters: [],
+  snackAutomaten: JSON.parse(JSON.stringify(DEFAULT_SNACK_AUTOMATEN)),
+
+  docDate: getHeuteDE(),
+  lsDate: "",
+  lieferscheinNr: "",
+  abFalschgeld: 0,
+  abVerlust: 0,
+  provPct: 0,
+  abAkonto: 0,
+  abGeldkarte: 0,
+  abSonstiges: 0
+};
+
+function initApp() {
+  const saved = localStorage.getItem("ahoi_abrechnung_v2");
+  if (saved) {
+    try {
+      state = JSON.parse(saved);
+    } catch (e) {
+      loadDefaults();
+    }
+  } else {
+    loadDefaults();
+  }
+
+  document.getElementById("docDate").value = getHeuteDE();
+  document.getElementById("lsDate").value = state.lsDate || "";
+  syncLieferscheinNr(state.lieferscheinNr || "", false);
+  document.getElementById("ab-falschgeld").value = state.abFalschgeld || 0;
+  document.getElementById("ab-verlust").value = state.abVerlust || 0;
+  document.getElementById("prov-pct").value = state.provPct || 0;
+  document.getElementById("ab-akonto").value = state.abAkonto || 0;
+  document.getElementById("ab-geldkarte").value = state.abGeldkarte || 0;
+  document.getElementById("ab-sonstiges").value = state.abSonstiges || 0;
+
+  aktualisiereArchivDropdown();
+  renderAll();
+}
+
+// --- PERIODEN-ARCHIV (NACH MONATEN / ZEITRÄUMEN) ---
+function getArchivListe() {
+  try {
+    return JSON.parse(localStorage.getItem("ahoi_archiv_v1") || "[]");
+  } catch (e) {
+    return [];
+  }
+}
+
+function aktualisiereArchivDropdown() {
+  const sel = document.getElementById("archiv-select");
+  if (!sel) return;
+  const archiv = getArchivListe();
+  sel.innerHTML = `<option value="">📂 Archiv (${archiv.length})</option>`;
+  archiv.forEach((eintrag, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = eintrag.label;
+    sel.appendChild(opt);
+  });
+}
+
+function archiviereAktuellePeriode() {
+  saveState();
+  const archiv = getArchivListe();
+  const datumStr = document.getElementById("docDate").value || getHeuteDE();
+  const teile = datumStr.split(".");
+  const monatsNamen = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+  let monatLabel = datumStr;
+   if (teile.length === 3) {
+    const monatZahl = Number(teile.at(1));
+    const jahrZahl = teile.at(2);
+    const mIdx = monatZahl - 1;
+    if (monatsNamen[mIdx]) {
+      monatLabel = `${monatsNamen[mIdx]} ${jahrZahl} (${datumStr})`;
+    }
+  }
+
+  const lsInfo = state.lieferscheinNr ? ` | LS ${state.lieferscheinNr}` : "";
+  const label = `${monatLabel}${lsInfo}`;
+
+  archiv.unshift({
+    label: label,
+    savedAt: new Date().toISOString(),
+    data: JSON.parse(JSON.stringify(state))
+  });
+
+  localStorage.setItem("ahoi_archiv_v1", JSON.stringify(archiv));
+  aktualisiereArchivDropdown();
+}
+
+function ladeAusArchiv(indexStr) {
+  const sel = document.getElementById("archiv-select");
+  if (indexStr === "") return;
+  const archiv = getArchivListe();
+  const eintrag = archiv[parseInt(indexStr, 10)];
+  if (!eintrag) return;
+
+  if (!confirm(`Möchtest du die archivierte Periode „${eintrag.label}“ laden?\n\nTipp: Falls du deinen aktuellen Stand noch nicht abgeschlossen hast, speichere vorher kurz ein Backup.`)) {
+    sel.value = "";
+    return;
+  }
+
+  state = JSON.parse(JSON.stringify(eintrag.data));
+  localStorage.setItem("ahoi_abrechnung_v2", JSON.stringify(state));
+
+  document.getElementById("docDate").value = state.docDate || getHeuteDE();
+  document.getElementById("lsDate").value = state.lsDate || "";
+  syncLieferscheinNr(state.lieferscheinNr || "", false);
+  document.getElementById("ab-falschgeld").value = state.abFalschgeld || 0;
+  document.getElementById("ab-verlust").value = state.abVerlust || 0;
+  document.getElementById("prov-pct").value = state.provPct || 0;
+  document.getElementById("ab-akonto").value = state.abAkonto || 0;
+  document.getElementById("ab-geldkarte").value = state.abGeldkarte || 0;
+  document.getElementById("ab-sonstiges").value = state.abSonstiges || 0;
+
+  renderAll();
+  sel.value = "";
+  alert(`Archivierte Periode „${eintrag.label}“ wurde geladen.`);
+}
+function loescheAusArchiv() {
+  const archiv = getArchivListe();
+  if (archiv.length === 0) {
+    alert("Das Archiv ist aktuell leer.");
+    return;
+  }
+
+  // Zeigt alle Einträge nummeriert zur Auswahl an
+  const listeText = archiv.map((e, i) => `${i + 1}: ${e.label}`).join("\n");
+  const eingabe = prompt(
+    "Welche archivierte Periode möchtest du löschen?\nBitte die Nummer eingeben:\n\n" + listeText
+  );
+
+  if (!eingabe) return;
+  const idx = parseInt(eingabe.trim(), 10) - 1;
+  const eintrag = archiv.at(idx);
+
+  if (isNaN(idx) || idx < 0 || idx >= archiv.length || !eintrag) {
+    alert("Ungültige Nummer.");
+    return;
+  }
+
+  if (confirm(`Soll die archivierte Periode „${eintrag.label}“ wirklich unwiderruflich gelöscht werden?`)) {
+    archiv.splice(idx, 1);
+    localStorage.setItem("ahoi_archiv_v1", JSON.stringify(archiv));
+    aktualisiereArchivDropdown();
+    alert("Archiv-Eintrag wurde gelöscht.");
+  }
+}
+
+
+function loadDefaults() {
+  state.items = INITIAL_ITEMS.map(item => {
+    const bestNeu = item.best_alt + item.zug;
+    return {
+      ...item,
+      retouren: 0,
+      kartons: 0,
+      heutiger_bestand: bestNeu,
+      stangen: item.is_coffee ? Math.round(bestNeu / item.le) : 0,
+      bestellung: 0,
+      mhd: item.mhd || ""
+    };
+  });
+  state.meters = JSON.parse(JSON.stringify(INITIAL_METERS));
+}
+
+function saveState() {
+  state.docDate = document.getElementById("docDate").value || getHeuteDE();
+  state.lsDate = document.getElementById("lsDate").value || "";
+  state.lieferscheinNr = document.getElementById("lieferscheinNr").value || "";
+  state.abFalschgeld = parseFloat(document.getElementById("ab-falschgeld").value) || 0;
+  state.abVerlust = parseFloat(document.getElementById("ab-verlust").value) || 0;
+  state.provPct = parseFloat(document.getElementById("prov-pct").value) || 0;
+  state.abAkonto = parseFloat(document.getElementById("ab-akonto").value) || 0;
+  state.abGeldkarte = parseFloat(document.getElementById("ab-geldkarte").value) || 0;
+  state.abSonstiges = parseFloat(document.getElementById("ab-sonstiges").value) || 0;
+  localStorage.setItem("ahoi_abrechnung_v2", JSON.stringify(state));
+}
+
+function resetAllData() {
+  if (confirm("Alle eingegebenen Zahlen und eigenen Artikel wirklich auf die Originalwerte des Lieferscheins zurücksetzen?")) {
+    localStorage.removeItem("ahoi_abrechnung_v2");
+    loadDefaults();
+    document.getElementById("docDate").value = getHeuteDE();
+    document.getElementById("lsDate").value = "";
+    syncLieferscheinNr("", false);
+    document.getElementById("ab-falschgeld").value = 0;
+    document.getElementById("ab-verlust").value = 0;
+    document.getElementById("prov-pct").value = 0;
+    document.getElementById("ab-akonto").value = 0;
+    document.getElementById("ab-geldkarte").value = 0;
+    document.getElementById("ab-sonstiges").value = 0;
+    renderAll();
+  }
+}
+
+function syncLieferscheinNr(val, shouldSave = true) {
+  state.lieferscheinNr = val;
+  const inp = document.getElementById("lieferscheinNr");
+  if (inp && inp.value !== val) inp.value = val;
+  document.querySelectorAll(".ls-nr-display").forEach(el => {
+    el.textContent = val;
+  });
+  if (shouldSave) saveState();
+}
+
+
+
+function switchTab(tabName, btnEl) {
+  document.querySelectorAll(".view-section").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(el => el.classList.remove("active"));
+  document.getElementById("view-" + tabName).classList.add("active");
+  if (btnEl) {
+    btnEl.classList.add("active");
+  } else {
+    const btns = document.querySelectorAll(".nav-btn");
+    if (tabName === "abrechnung") btns[0].classList.add("active");
+    if (tabName === "inventur") btns[1].classList.add("active");
+    if (tabName === "bestellung") btns[2].classList.add("active");
+  }
+  renderAll();
+}
+
+function jumpToMhdFilter() {
+  switchTab("inventur");
+  document.getElementById("inv-only-mhd").checked = true;
+  renderInventurTable();
+}
+
+function fmtEur(val) {
+  return val.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+}
+
+function getMhdStatus(mhdStr) {
+  if (!mhdStr) return { status: "none", days: null, label: "-" };
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const parts = mhdStr.split("-");
+  if (parts.length !== 3) return { status: "none", days: null, label: "-" };
+
+  const mhdDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  mhdDate.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.round((mhdDate - today) / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return { status: "expired", days: diffDays, label: `Abgelaufen (${Math.abs(diffDays)} T.)` };
+  } else if (diffDays <= 14) {
+    return { status: "warning", days: diffDays, label: diffDays === 0 ? "Läuft HEUTE ab!" : `Noch ${diffDays} Tage` };
+  } else {
+    return { status: "ok", days: diffDays, label: `OK (${diffDays} T.)` };
+  }
+}
+
+function formatDateDE(isoStr) {
+  if (!isoStr) return "";
+  const [y, m, d] = isoStr.split("-");
+  return `${d}.${m}.${y}`;
+}
+
+
+// Stellt sicher, dass jeder Artikel saubere Standorte hat
+function ensureItemLocations(item) {
+  if (!Array.isArray(state.snackAutomaten)) {
+    state.snackAutomaten = JSON.parse(JSON.stringify(DEFAULT_SNACK_AUTOMATEN));
+  }
+  if (item.is_coffee) {
+    item.best_zuhause = item.heutiger_bestand || 0;
+    item.best_automaten = {};
+    return;
+  }
+  if (typeof item.best_zuhause !== "number") {
+    item.best_zuhause = item.heutiger_bestand || 0;
+  }
+  if (!item.best_automaten || typeof item.best_automaten !== "object") {
+    item.best_automaten = {};
+  }
+  state.snackAutomaten.forEach(a => {
+    if (typeof item.best_automaten[a.id] !== "number") {
+      item.best_automaten[a.id] = 0;
+    }
+  });
+}
+
+// Neuen (z. B. 3.) Snackautomaten anlegen
+function addSnackAutomat() {
+  const name = prompt("Name des neuen Snackautomaten (z. B. '935 R Fulda'):");
+  if (!name || !name.trim()) return;
+  const id = "AUT_" + Date.now();
+  state.snackAutomaten.push({ id: id, name: name.trim() });
+  state.items.forEach(item => ensureItemLocations(item));
+  recalcAll();
+}
+
+// Hilfsfunktion: Standort-Name ermitteln
+function getLocName(locId) {
+  if (!locId || locId === "zuhause") return "Zuhause";
+  const found = (state.snackAutomaten || []).find(a => a.id === locId);
+  return found ? found.name : locId;
+}
+
+// MHD-Liste normalisieren (inkl. Standort-Zuordnung)
+function normalizeItemMhds(item) {
+  ensureItemLocations(item);
+  if (!Array.isArray(item.mhds)) {
+    item.mhds = item.mhd ? [{ qty: item.heutiger_bestand || 0, date: item.mhd, loc: "zuhause" }] : [];
+  }
+  const merged = [];
+  item.mhds.forEach(entry => {
+    const loc = item.is_coffee ? "zuhause" : (entry.loc || "zuhause");
+    if (!entry.date && (!entry.qty || entry.qty <= 0)) return;
+    const existing = entry.date ? merged.find(m => m.date === entry.date && m.loc === loc) : null;
+    if (existing) {
+      existing.qty = (Number(existing.qty) || 0) + (Number(entry.qty) || 0);
+    } else {
+      merged.push({ qty: Number(entry.qty) || 0, date: entry.date || "", loc: loc });
+    }
+  });
+  const validDates = merged.map(m => m.date).filter(Boolean).sort();
+  item.mhds = merged;
+  item.mhd = validDates[0] || "";
+}
+
+// Ermittelt den kritischsten Status über alle MHDs eines Artikels
+function getItemOverallMhdStatus(item) {
+  normalizeItemMhds(item);
+  const valid = item.mhds.filter(m => m.date);
+  if (valid.length === 0) return { status: "none", days: null, label: "-" };
+  valid.sort((a, b) => a.date.localeCompare(b.date));
+  return getMhdStatus(valid[0].date);
+}
+
+// Abgang standortbezogen vom ältesten MHD abziehen (FIFO)
+function deductFromOldestMhd(item, abgangMenge, locId = "zuhause") {
+  if (abgangMenge <= 0) return;
+  normalizeItemMhds(item);
+  const targetLoc = item.is_coffee ? "zuhause" : locId;
+
+  const matching = item.mhds
+    .filter(m => (m.loc || "zuhause") === targetLoc)
+    .sort((a, b) => (a.date || "9999-12-31").localeCompare(b.date || "9999-12-31"));
+
+  let rest = abgangMenge;
+  for (let i = 0; i < matching.length && rest > 0; i++) {
+    const verf = Number(matching[i].qty) || 0;
+    if (verf <= rest) {
+      rest -= verf;
+      matching[i].qty = 0;
+    } else {
+      matching[i].qty = verf - rest;
+      rest = 0;
+    }
+  }
+  item.mhds = item.mhds.filter(m => (Number(m.qty) || 0) > 0);
+  normalizeItemMhds(item);
+}
+
+// Bestandsänderung an einem Standort (Zuhause oder Automat)
+function onLocBestandChange(idx, locId, value) {
+  const neu = parseFloat(value) || 0;
+  const item = state.items[idx];
+  ensureItemLocations(item);
+
+  const alt = locId === "zuhause" ? item.best_zuhause : (item.best_automaten[locId] || 0);
+  if (locId === "zuhause") {
+    item.best_zuhause = neu;
+  } else {
+    item.best_automaten[locId] = neu;
+  }
+
+  const sumAutomaten = Object.values(item.best_automaten).reduce((a, b) => a + (Number(b) || 0), 0);
+  item.heutiger_bestand = (Number(item.best_zuhause) || 0) + sumAutomaten;
+
+  if (neu < alt) {
+    deductFromOldestMhd(item, alt - neu, locId);
+  }
+  recalcAll();
+}
+
+function restoreToOldestMhd(item, zugangMenge) {
+  if (zugangMenge <= 0) return;
+  normalizeItemMhds(item);
+  if (item.mhds.length === 0) return;
+  const aktuelleMhdSumme = item.mhds.reduce((sum, m) => sum + (Number(m.qty) || 0), 0);
+  const fehlendeMenge = (item.heutiger_bestand || 0) - aktuelleMhdSumme;
+  if (fehlendeMenge <= 0) return;
+  item.mhds.sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return a.date.localeCompare(b.date);
+  });
+  item.mhds[0].qty = (Number(item.mhds[0].qty) || 0) + Math.min(zugangMenge, fehlendeMenge);
+  normalizeItemMhds(item);
+}
+
+function updateMhdBanner() {
+  const banner = document.getElementById("mhd-alert-banner");
+  const list = document.getElementById("mhd-alert-list");
+  list.innerHTML = "";
+  const alerts = [];
+
+  state.items.forEach(item => {
+    normalizeItemMhds(item);
+    item.mhds.forEach(entry => {
+      if (!entry.date) return;
+      const info = getMhdStatus(entry.date);
+      if (info.status === "expired" || info.status === "warning") {
+        alerts.push({ item, entry, info });
+      }
+    });
+  });
+
+  if (alerts.length === 0) {
+    banner.style.display = "none";
+    return;
+  }
+
+  alerts.sort((a, b) => a.entry.date.localeCompare(b.entry.date));
+  alerts.forEach(({ item, entry, info }) => {
+    const li = document.createElement("li");
+    const locLabel = getLocName(entry.loc);
+    const mengeText = entry.qty > 0 ? `${entry.qty} Stk.` : `Bestand: ${item.heutiger_bestand} Stk.`;
+    li.innerHTML = `<strong>Art. ${item.art} - ${item.name}</strong>: MHD ${formatDateDE(entry.date)} &rarr; <strong>${info.label}</strong> (${mengeText} &bull; <span class="loc-badge">${locLabel}</span>)`;
+    list.appendChild(li);
+  });
+  banner.style.display = "block";
+}
+
+
+// Artikel hinzufügen & löschen
+function toggleAddArticleForm() {
+  const box = document.getElementById("add-article-box");
+  box.style.display = (box.style.display === "block") ? "none" : "block";
+}
+
+function addNewArticle() {
+  const art = document.getElementById("new-art").value.trim();
+  const name = document.getElementById("new-name").value.trim();
+  const le = parseInt(document.getElementById("new-le").value, 10) || 1;
+  const preis = parseFloat(document.getElementById("new-preis").value) || 0;
+  const best = parseInt(document.getElementById("new-best").value, 10) || 0;
+  const mhd = document.getElementById("new-mhd").value || "";
+  const page = parseInt(document.getElementById("new-page").value, 10) || 2;
+  const isCoffee = document.getElementById("new-coffee").checked;
+
+  if (!art || !name) {
+    alert("Bitte mindestens Artikelnummer und Artikelbezeichnung eingeben.");
+    return;
+  }
+
+  state.items.push({
+    art: art,
+    name: name,
+    le: le,
+    preis: preis,
+    best_alt: best,
+    zug: 0,
+    retouren: 0,
+    kartons: 0,
+    heutiger_bestand: best,
+    stangen: isCoffee ? +(best / le).toFixed(2) : 0,
+    bestellung: 0,
+    page: page,
+    is_coffee: isCoffee,
+    mhd: mhd
+  });
+
+  document.getElementById("new-art").value = "";
+  document.getElementById("new-name").value = "";
+  document.getElementById("new-best").value = "0";
+  document.getElementById("new-mhd").value = "";
+  document.getElementById("new-coffee").checked = false;
+  document.getElementById("add-article-box").style.display = "none";
+
+  recalcAll();
+}
+
+function deleteArticle(idx) {
+  const item = state.items[idx];
+  if (confirm('Artikel "' + item.art + ' - ' + item.name + '" wirklich komplett löschen?')) {
+    state.items.splice(idx, 1);
+    recalcAll();
+  }
+}
+
+// Update Handlers
+function onSheetChange(idx, field, value) {
+  const num = parseFloat(value) || 0;
+  const item = state.items[idx];
+  const alterBestand = item.heutiger_bestand || 0;
+
+  // 1. Zugang (Wareneingang) -> Differenz zum Heutigen Bestand ADDIEREN
+  if (field === "zug") {
+    const alterWert = item.zug || 0;
+    const differenz = num - alterWert;
+    item.heutiger_bestand = alterBestand + differenz;
+    if (!item.is_coffee) {
+      ensureItemLocations(item);
+      item.best_zuhause = (item.best_zuhause || 0) + differenz;
+    }
+
+
+
+  }
+
+  // 2. Retouren -> Differenz vom Heutigen Bestand ABZIEHEN
+  if (field === "retouren") {
+    const alterWert = item.retouren || 0;
+    const differenz = num - alterWert;
+    item.heutiger_bestand = alterBestand - differenz;
+  }
+
+  // 3. Warenausgang (kartons) -> Differenz vom Heutigen Bestand ABZIEHEN
+  if (field === "kartons") {
+    const alterWert = item.kartons || 0;
+    const differenz = num - alterWert;
+    item.heutiger_bestand = alterBestand - differenz;
+  }
+
+  // 4. Direkte Änderung in "Heutiger Bestand" auf Blatt 1/2
+  if (field === "heutiger_bestand") {
+    item.heutiger_bestand = num;
+  }
+
+  // Wenn Bestand sinkt -> vom ältesten MHD abziehen; wenn er wieder steigt -> zurückbuchen
+  const bestandDiff = (item.heutiger_bestand || 0) - alterBestand;
+  if (bestandDiff < 0) {
+    deductFromOldestMhd(item, Math.abs(bestandDiff));
+  } else if (bestandDiff > 0 && field !== "zug") {
+    restoreToOldestMhd(item, bestandDiff);
+  }
+
+  item[field] = num;
+
+  // Kaffee-Stangen automatisch aktualisieren
+  if (item.is_coffee) {
+    item.stangen = +(item.heutiger_bestand / item.le).toFixed(2);
+  }
+
+  recalcAll();
+}
+
+function onStangenChange(idx, value) {
+  const stangen = parseFloat(value) || 0;
+  const item = state.items[idx];
+  const alterBestand = item.heutiger_bestand || 0;
+  const neuerBestand = Math.round(stangen * item.le);
+
+  item.stangen = stangen;
+  item.heutiger_bestand = neuerBestand;
+
+  if (neuerBestand < alterBestand) {
+    deductFromOldestMhd(item, alterBestand - neuerBestand);
+  } else if (neuerBestand > alterBestand) {
+    restoreToOldestMhd(item, neuerBestand - alterBestand);
+  }
+
+  recalcAll();
+}
+
+function onIstBestandChange(idx, value) {
+  const ist = parseFloat(value) || 0;
+  const item = state.items[idx];
+  const alterBestand = item.heutiger_bestand || 0;
+
+  item.heutiger_bestand = ist;
+
+  if (ist < alterBestand) {
+    deductFromOldestMhd(item, alterBestand - ist);
+  } else if (ist > alterBestand) {
+    restoreToOldestMhd(item, ist - alterBestand);
+  }
+
+  if (item.is_coffee) {
+    item.stangen = +(ist / item.le).toFixed(2);
+  }
+  recalcAll();
+}
+
+
+
+function addMhdEntry(idx) {
+  const item = state.items[idx];
+  normalizeItemMhds(item);
+  const bereitsVerteilt = item.mhds.reduce((sum, m) => sum + (Number(m.qty) || 0), 0);
+  const restMenge = Math.max(0, (item.heutiger_bestand || 0) - bereitsVerteilt);
+  const vorschlagMenge = restMenge > 0 ? restMenge : (item.le || 1);
+  item.mhds.push({ qty: vorschlagMenge, date: "" });
+  recalcAll();
+}
+
+function updateMhdEntry(idx, mIdx, field, value) {
+  const item = state.items[idx];
+  normalizeItemMhds(item);
+  if (!item.mhds[mIdx]) return;
+  if (field === "qty") {
+    item.mhds[mIdx].qty = parseFloat(value) || 0;
+  } else if (field === "date") {
+    item.mhds[mIdx].date = value;
+    normalizeItemMhds(item); // Fasst identische Daten sofort automatisch zusammen
+  } else if (field === "loc") {
+    item.mhds[mIdx].loc = value;
+    normalizeItemMhds(item);
+
+
+
+
+  }
+  recalcAll();
+}
+
+function removeMhdEntry(idx, mIdx) {
+  const item = state.items[idx];
+  normalizeItemMhds(item);
+  item.mhds.splice(mIdx, 1);
+  normalizeItemMhds(item);
+  recalcAll();
+}
+
+
+
+
+function onPreisChange(idx, value) {
+  state.items[idx].preis = parseFloat(value) || 0;
+  recalcAll();
+}
+
+
+function onBestellungChange(idx, value) {
+  state.items[idx].bestellung = parseFloat(value) || 0;
+  recalcAll();
+}
+
+// Fach/Spirale in einem Bestückungsplan bearbeiten oder neuen Artikel zuweisen
+function editPlanSlot(planId, artNr) {
+  if (!state.plans) state.plans = JSON.parse(JSON.stringify(DEFAULT_PLANS));
+  if (!state.plans[planId]) state.plans[planId] = {};
+
+  const aktuell = state.plans[planId][artNr] || { order: 99, slot: "", max: 12 };
+  const autName = getLocName(planId);
+
+  const neuesFach = prompt(
+    `Fach / Spirale für Art. ${artNr} in "${autName}" eingeben:\n(z. B. "F2 / S3" oder "Fach 32" – leer lassen zum Entfernen aus diesem Plan)`,
+    aktuell.slot
+  );
+  if (neuesFach === null) return; // Abbrechen geklickt
+
+  if (neuesFach.trim() === "") {
+    delete state.plans[planId][artNr];
+    recalcAll();
+    return;
+  }
+
+  const neueReihenfolge = prompt(
+    `Sortier-Nummer (Position von oben nach unten, z. B. 101, 205 oder 32):`,
+    aktuell.order
+  );
+  if (neueReihenfolge === null) return;
+
+  const neueMax = prompt(
+    `Maximale Füllmenge (Kapazität in Stück):`,
+    aktuell.max
+  );
+  if (neueMax === null) return;
+
+  state.plans[planId][artNr] = {
+    order: parseInt(neueReihenfolge, 10) || 99,
+    slot: neuesFach.trim(),
+    max: parseInt(neueMax, 10) || 12
+  };
+  recalcAll();
+}
+
+// Neuen Artikel aus der Gesamtliste in den aktuell gewählten Bestückungsplan aufnehmen
+function addArticleToCurrentPlan() {
+  const planId = document.getElementById("inv-plan-filter").value;
+  if (!planId || planId === "all") return;
+  const autName = getLocName(planId);
+
+  const artNr = prompt(`Welche Artikelnummer (Art-Nr.) soll in "${autName}" hinzugefügt werden?\n(Falls der Artikel noch nicht existiert, bitte zuerst oben über "+ Neuer Artikel" anlegen)`);
+  if (!artNr || !artNr.trim()) return;
+
+  const cleanArt = artNr.trim();
+  const existiert = state.items.find(i => i.art === cleanArt);
+  if (!existiert) {
+    alert(`Artikelnummer "${cleanArt}" wurde nicht gefunden! Bitte lege den Artikel zuerst oben rechts über "+ Neuer Artikel" an.`);
+    return;
+  }
+  editPlanSlot(planId, cleanArt);
+}
+
+
+
+
+function onMeterChange(idx, value) {
+  state.meters[idx].neu = parseFloat(value) || 0;
+  recalcAll();
+}
+
+function renderAll() {
+  updateMhdBanner();
+  renderAbrechnungTables();
+  renderInventurTable();
+  renderBestellungTable();
+  recalcTotalsOnly();
+  // NEU: Vermerk anzeigen falls vorhanden
+  const vermerkEl = document.getElementById("wochen-vermerk");
+  if (vermerkEl) vermerkEl.textContent = state.wochenVermerk || "";
+}
+
+
+function recalcAll() {
+  saveState();
+  renderAll();
+}
+
+function renderAbrechnungTables() {
+  const tbody1 = document.getElementById("tbody-sheet-1");
+  const tbody2 = document.getElementById("tbody-sheet-2");
+  tbody1.innerHTML = "";
+  tbody2.innerHTML = "";
+
+    state.items.forEach((item, idx) => {
+      // WIEDER AUF DEN ORIGINALZUSTAND SETZEN (ohne - item.kartons):
+      const bestNeu = item.best_alt + item.zug - item.retouren;
+      const verkauftStk = bestNeu - item.heutiger_bestand;
+      const verkauftEur = verkauftStk * item.preis;
+
+
+    const stkClass = verkauftStk > 0 ? "highlight-pos" : (verkauftStk < 0 ? "highlight-neg" : "");
+    const badgeHtml = item.is_coffee ? '<span class="badge">' + item.le + 'er Stange</span>' : '';
+
+    const tr = document.createElement("tr");
+    if (item.is_coffee) tr.classList.add("coffee-row");
+
+    tr.innerHTML =
+      '<td><strong>' + item.art + '</strong></td>' +
+      '<td>' +
+        '<div><strong>' + item.name + '</strong> ' + badgeHtml + '</div>' +
+        '<div style="color:#64748b; font-size:0.75rem;">LE: ' + item.le + ' &nbsp;|&nbsp; Preis: ' + item.preis.toFixed(2).replace('.', ',') + ' €</div>' +
+      '</td>' +
+      '<td class="num">' + item.best_alt + '</td>' +
+      '<td><input type="number" value="' + item.zug + '" onchange="onSheetChange(' + idx + ', \'zug\', this.value)"></td>' +
+      '<td><input type="number" value="' + item.retouren + '" onchange="onSheetChange(' + idx + ', \'retouren\', this.value)"></td>' +
+      '<td class="num calc-cell">' + bestNeu + '</td>' +
+      '<td><input type="number" value="' + item.kartons + '" onchange="onSheetChange(' + idx + ', \'kartons\', this.value)"></td>' +
+      '<td><input type="number" value="' + item.heutiger_bestand + '" onchange="onSheetChange(' + idx + ', \'heutiger_bestand\', this.value)"></td>' +
+      '<td class="num calc-cell ' + stkClass + '">' + verkauftStk + '</td>' +
+      '<td class="num calc-cell">' + fmtEur(verkauftEur) + '</td>';
+
+    if (item.page === 1) {
+      tbody1.appendChild(tr);
+    } else {
+      tbody2.appendChild(tr);
+    }
+  });
+
+  const tbodyMeters = document.getElementById("tbody-meters");
+  tbodyMeters.innerHTML = "";
+  state.meters.forEach((m, idx) => {
+    const diff = m.neu - m.alt;
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td>' + m.loc + '</td>' +
+      '<td><strong>' + m.id + '</strong></td>' +
+      '<td class="num">' + fmtEur(m.alt) + '</td>' +
+      '<td><input type="number" step="0.01" value="' + m.neu + '" onchange="onMeterChange(' + idx + ', this.value)"></td>' +
+      '<td class="num calc-cell">' + fmtEur(diff) + '</td>';
+    tbodyMeters.appendChild(tr);
+  });
+}
+
+
+function renderInventurTable() {
+  const tbody = document.getElementById("tbody-inventur");
+  tbody.innerHTML = "";
+
+  const search = (document.getElementById("inv-search").value || "").toLowerCase();
+  const onlyCoffee = document.getElementById("inv-only-coffee").checked;
+  const onlyMhd = document.getElementById("inv-only-mhd").checked;
+
+    const planId = document.getElementById("inv-plan-filter") ? document.getElementById("inv-plan-filter").value : "all";
+  if (!state.plans) state.plans = JSON.parse(JSON.stringify(DEFAULT_PLANS));
+  const activePlan = (planId !== "all" && state.plans[planId]) ? state.plans[planId] : null;
+
+  // Artikelliste mit Original-Index vorbereiten und bei aktivem Plan exakt nach Fach/Spirale sortieren
+  let listToRender = state.items.map((item, idx) => ({ item, idx }));
+  if (activePlan) {
+    listToRender = listToRender
+      .filter(entry => activePlan[entry.item.art])
+      .sort((a, b) => (activePlan[a.item.art].order || 999) - (activePlan[b.item.art].order || 999));
+  }
+
+  listToRender.forEach(({ item, idx }) => {
+
+    // 1. Prüft den Gesamt-Status über alle MHDs dieses Artikels
+    const mhdInfo = getItemOverallMhdStatus(item);
+
+    if (onlyCoffee && !item.is_coffee) return;
+    if (onlyMhd && mhdInfo.status !== "expired" && mhdInfo.status !== "warning") return;
+    if (search && !item.art.toLowerCase().includes(search) && !item.name.toLowerCase().includes(search)) return;
+
+    const bestandVorInventur = item.best_alt + item.zug - item.retouren;
+    const istBestand = item.heutiger_bestand;
+    const diff = istBestand - bestandVorInventur;
+    const diffClass = diff < 0 ? "highlight-neg" : (diff > 0 ? "highlight-pos" : "");
+    const diffText = diff > 0 ? ("+" + diff) : diff;
+
+    const tr = document.createElement("tr");
+    if (mhdInfo.status === "expired") tr.classList.add("mhd-expired-row");
+    else if (mhdInfo.status === "warning") tr.classList.add("mhd-warning-row");
+    else if (item.is_coffee) tr.classList.add("coffee-row");
+
+    const stangenCell = item.is_coffee
+      ? '<input type="number" step="0.5" value="' + item.stangen + '" onchange="onStangenChange(' + idx + ', this.value)">'
+      : '<span style="color:#94a3b8; font-size:0.78rem;">-</span>';
+
+
+
+
+    // Bestands-Zelle: Kaffee = einfaches Feld | Snacks = Zuhause + Automaten
+    let bestandCellHtml = '';
+    if (item.is_coffee) {
+      bestandCellHtml = '<input type="number" value="' + istBestand + '" onchange="onIstBestandChange(' + idx + ', this.value)">';
+    } else {
+      bestandCellHtml = '<div class="loc-grid">';
+      bestandCellHtml += '<div class="loc-row"><span>Zuhause:</span><input type="number" value="' + (item.best_zuhause || 0) + '" onchange="onLocBestandChange(' + idx + ', \'zuhause\', this.value)"></div>';
+      (state.snackAutomaten || []).forEach(aut => {
+        const val = (item.best_automaten && item.best_automaten[aut.id]) || 0;
+        bestandCellHtml += '<div class="loc-row"><span>' + aut.name + ':</span><input type="number" value="' + val + '" onchange="onLocBestandChange(' + idx + ', \'' + aut.id + '\', this.value)"></div>';
+      });
+      bestandCellHtml += '<div style="font-size:0.75rem; font-weight:700; text-align:right; color:#1e3a8a;">Gesamt: ' + istBestand + ' Stk.</div>';
+
+      bestandCellHtml += '<button type="button" class="btn-mhd-add no-print" style="margin-top:2px; width:100%;" onclick="openRefillModal(' + idx + ')">Automat befüllen</button>';
+
+
+
+
+
+      bestandCellHtml += '</div>';
+
+
+
+
+    }
+
+    // 2. Baut die MHD-Spalte mit Standort-Auswahl bei Snacks
+    let mhdCellHtml = '<div class="mhd-list">';
+    item.mhds.forEach((m, mIdx) => {
+      let locSelectHtml = '';
+      if (!item.is_coffee) {
+        locSelectHtml = '<select onchange="updateMhdEntry(' + idx + ', ' + mIdx + ', \'loc\', this.value)">';
+        locSelectHtml += '<option value="zuhause"' + ((m.loc || 'zuhause') === 'zuhause' ? ' selected' : '') + '>Zuhause</option>';
+        (state.snackAutomaten || []).forEach(aut => {
+          locSelectHtml += '<option value="' + aut.id + '"' + (m.loc === aut.id ? ' selected' : '') + '>' + aut.name + '</option>';
+        });
+        locSelectHtml += '</select>';
+      }
+
+      mhdCellHtml +=
+        '<div class="mhd-entry">' +
+          '<input type="number" title="Menge (Stk.)" value="' + m.qty + '" onchange="updateMhdEntry(' + idx + ', ' + mIdx + ', \'qty\', this.value)">' +
+          '<span>×</span>' +
+          '<input type="date" value="' + (m.date || '') + '" onchange="updateMhdEntry(' + idx + ', ' + mIdx + ', \'date\', this.value)">' +
+          locSelectHtml +
+          '<button type="button" class="btn-mhd-del" title="MHD entfernen" onclick="removeMhdEntry(' + idx + ', ' + mIdx + ')">×</button>' +
+        '</div>';
+    });
+    mhdCellHtml += '<button type="button" class="btn-mhd-add no-print" onclick="addMhdEntry(' + idx + ')">+ MHD</button>';
+    mhdCellHtml += '</div>';
+
+    // 3. Baut die MHD-Status-Spalte (inkl. Standort-Badge)
+    let mhdBadge = '<span style="color:#94a3b8; font-size:0.78rem;">Kein MHD</span>';
+    const validMhds = item.mhds.filter(m => m.date);
+    if (validMhds.length > 0) {
+      mhdBadge = '<div class="mhd-list">' + validMhds.map(m => {
+        const st = getMhdStatus(m.date);
+        const cls = st.status === "expired" ? "badge-mhd-exp" : (st.status === "warning" ? "badge-mhd-warn" : "badge-mhd-ok");
+        const prefix = validMhds.length > 1 ? (m.qty + '× ') : '';
+        const locTag = !item.is_coffee ? ' <span class="loc-badge">' + getLocName(m.loc) + '</span>' : '';
+        return '<span class="badge ' + cls + '">' + prefix + st.label + locTag + '</span>';
+      }).join('') + '</div>';
+    }
+
+    const coffeeBadge = item.is_coffee ? ' <span class="badge">' + item.le + 'er</span>' : '';
+
+    const slotInfo = (activePlan && activePlan[item.art])
+      ? '<div style="font-size:0.75rem; color:#0369a1; font-weight:700; margin-top:2px;">Fach: ' + activePlan[item.art].slot + ' (Max: ' + activePlan[item.art].max + ' Stk.) <button type="button" class="no-print" onclick="editPlanSlot(\'' + planId + '\', \'' + item.art + '\')" title="Fach ändern oder aus Automat entfernen" style="border:none; background:transparent; cursor:pointer; color:#1e3a8a; font-weight:bold;">✎</button></div>'
+      : '';
+
+
+
+    // 4. Setzt die komplette Tabellenzeile zusammen
+    tr.innerHTML =
+      '<td><strong>' + item.art + '</strong></td>' +
+            '<td><strong>' + item.name + '</strong>' + coffeeBadge + slotInfo + '</td>' +
+
+      '<td><input type="number" step="0.05" value="' + item.preis.toFixed(2) + '" onchange="onPreisChange(' + idx + ', this.value)"></td>' +
+      '<td class="num calc-cell">' + bestandVorInventur + '</td>' +
+      '<td class="num">' + stangenCell + '</td>' +
+      '<td>' + bestandCellHtml + '</td>' +
+      '<td class="num calc-cell ' + diffClass + '">' + diffText + '</td>' +
+      '<td>' + mhdCellHtml + '</td>' +
+      '<td class="center">' + mhdBadge + '</td>' +
+      '<td><input type="number" value="' + item.bestellung + '" onchange="onBestellungChange(' + idx + ', this.value)"></td>' +
+      '<td class="center no-print"><button class="btn-del" onclick="deleteArticle(' + idx + ')" title="Artikel löschen">×</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+
+function renderBestellungTable() {
+  const tbody = document.getElementById("tbody-bestellung");
+  tbody.innerHTML = "";
+
+  const onlyOrdered = document.getElementById("best-only-ordered").checked;
+  let totalQty = 0;
+  let totalLE = 0;
+
+  state.items.forEach((item, idx) => {
+    if (onlyOrdered && (!item.bestellung || item.bestellung <= 0)) return;
+
+    const qty = item.bestellung || 0;
+    const leCount = item.le > 0 ? (qty / item.le) : 0;
+    totalQty += qty;
+    totalLE += leCount;
+
+    const tr = document.createElement("tr");
+    if (item.is_coffee) tr.classList.add("coffee-row");
+
+    const leText = item.le > 0 ? (item.le + ' Stk.') : '-';
+    const leCountText = item.le > 0 ? (leCount.toFixed(1).replace('.', ',') + ' LE') : '-';
+
+    tr.innerHTML =
+      '<td><strong>' + item.art + '</strong></td>' +
+      '<td><strong>' + item.name + '</strong></td>' +
+      '<td class="center">' + leText + '</td>' +
+      '<td><input type="number" value="' + qty + '" onchange="onBestellungChange(' + idx + ', this.value)"></td>' +
+      '<td class="num" style="color:#475569;">' + leCountText + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById("best-total-qty").textContent = totalQty;
+  document.getElementById("best-total-le").textContent = totalLE.toFixed(1).replace('.', ',') + " LE";
+}
+
+function recalcTotalsOnly() {
+  let sumVerkauft = 0;
+  let sumPfand = 0;
+
+  state.items.forEach(item => {
+    // WIEDER AUF DEN ORIGINALZUSTAND SETZEN (ohne - item.kartons):
+    const bestNeu = item.best_alt + item.zug - item.retouren;
+    const verkauftStk = bestNeu - item.heutiger_bestand;
+    const eur = verkauftStk * item.preis;
+
+
+
+    if (["155", "159", "160"].includes(item.art)) {
+      const pfandDiff = (item.heutiger_bestand - bestNeu) * item.preis;
+      if (pfandDiff > 0) sumPfand += pfandDiff;
+    } else {
+      sumVerkauft += eur;
+    }
+  });
+
+  const abFalschgeld = parseFloat(document.getElementById("ab-falschgeld").value) || 0;
+  const abVerlust = parseFloat(document.getElementById("ab-verlust").value) || 0;
+  const provPct = parseFloat(document.getElementById("prov-pct").value) || 0;
+  const abAkonto = parseFloat(document.getElementById("ab-akonto").value) || 0;
+  const abGeldkarte = parseFloat(document.getElementById("ab-geldkarte").value) || 0;
+  const abSonstiges = parseFloat(document.getElementById("ab-sonstiges").value) || 0;
+
+  const provUmsatz = sumVerkauft - abFalschgeld - abVerlust - sumPfand;
+  const provEur = provUmsatz * (provPct / 100);
+  const zuUeberweisen = provUmsatz - provEur - abAkonto - abGeldkarte - abSonstiges;
+
+  document.getElementById("sum-verkauft").textContent = fmtEur(sumVerkauft);
+  document.getElementById("sum-pfand").textContent = fmtEur(sumPfand);
+  document.getElementById("sum-prov-umsatz").textContent = fmtEur(provUmsatz);
+  document.getElementById("sum-prov-eur").textContent = fmtEur(provEur);
+  document.getElementById("sum-ueberweisen").textContent = fmtEur(zuUeberweisen);
+
+  let meterDiffTotal = 0;
+  state.meters.forEach(m => {
+    meterDiffTotal += (m.neu - m.alt);
+  });
+  document.getElementById("meter-total-diff").textContent = fmtEur(meterDiffTotal);
+}
+
+function oeffneWareneingangDialog() {
+  const tbody = document.getElementById("tbody-wareneingang-modal");
+  tbody.innerHTML = "";
+  let count = 0;
+
+  state.items.forEach((item, idx) => {
+    const menge = item.bestellung || 0;
+    if (menge > 0) {
+      count++;
+      const altMhdText = item.mhd ? formatDateDE(item.mhd) : "-";
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td><strong>' + item.art + '</strong></td>' +
+        '<td><strong>' + item.name + '</strong></td>' +
+        '<td><input type="number" class="we-qty-input" data-idx="' + idx + '" value="' + menge + '"></td>' +
+        '<td class="center" style="color:#64748b;">' + altMhdText + '</td>' +
+        '<td><input type="date" class="we-mhd-input" data-idx="' + idx + '" value="' + (item.mhd || '') + '"></td>';
+      tbody.appendChild(tr);
+    }
+  });
+
+  if (count === 0) {
+    alert("Es sind aktuell keine Artikel mit einer Bestellmenge (> 0) eingetragen.");
+    return;
+  }
+
+  document.getElementById("wareneingang-box").style.display = "block";
+}
+
+function schliesseWareneingangDialog() {
+  document.getElementById("wareneingang-box").style.display = "none";
+}
+
+function bucheWareneingangMitMhd() {
+  const qtyInputs = document.querySelectorAll(".we-qty-input");
+  const mhdInputs = document.querySelectorAll(".we-mhd-input");
+
+  qtyInputs.forEach((inp, i) => {
+    const idx = parseInt(inp.getAttribute("data-idx"), 10);
+    const gelieferteMenge = parseFloat(inp.value) || 0;
+    const neuesMhd = mhdInputs[i].value;
+    const item = state.items[idx];
+
+    if (gelieferteMenge > 0) {
+      item.zug = (item.zug || 0) + gelieferteMenge;
+      item.heutiger_bestand = (item.heutiger_bestand || 0) + gelieferteMenge;
+
+      if (!item.is_coffee) {
+        ensureItemLocations(item);
+        item.best_zuhause = (item.best_zuhause || 0) + gelieferteMenge;
+      }
+
+
+
+      if (item.is_coffee && item.le > 0) {
+        item.stangen = +(item.heutiger_bestand / item.le).toFixed(2);
+      }
+    }
+    if (neuesMhd) {
+      item.mhd = neuesMhd;
+    }
+   
+    if (neuesMhd && gelieferteMenge > 0) {
+      normalizeItemMhds(item);
+            item.mhds.push({ qty: gelieferteMenge, date: neuesMhd, loc: "zuhause" });
+
+      normalizeItemMhds(item); // Fasst gleiche Daten automatisch zusammen
+    }
+
+
+ item.bestellung = 0;
+  });
+
+  schliesseWareneingangDialog();
+  recalcAll();
+  alert("Wareneingang und MHD wurden erfolgreich gebucht!");
+}
+
+function exportBackup() {
+  saveState();
+  const backupPaket = {
+    aktuellerStand: state,
+    archiv: getArchivListe()
+  };
+  const dataStr = JSON.stringify(backupPaket, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const jetzt = new Date();
+  const datumSauber = jetzt.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+    "_" + jetzt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }).replace(":", "-");
+  a.href = url;
+  a.download = "AHOI_Backup_" + datumSauber + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(event) {
+    const file = event.target.files.item(0);
+
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      // Unterstützt sowohl das neue Backup-Format (mit Archiv) als auch ältere Backups
+      const loadedState = parsed.aktuellerStand ? parsed.aktuellerStand : parsed;
+      const loadedArchiv = Array.isArray(parsed.archiv) ? parsed.archiv : null;
+
+      if (!loadedState.items || !loadedState.meters) {
+        alert("Ungültige Backup-Datei!");
+        return;
+      }
+      if (confirm("Soll der aktuelle Stand wirklich mit dem Backup überschrieben werden?")) {
+        state = loadedState;
+        localStorage.setItem("ahoi_abrechnung_v2", JSON.stringify(state));
+
+        if (loadedArchiv !== null) {
+          localStorage.setItem("ahoi_archiv_v1", JSON.stringify(loadedArchiv));
+          aktualisiereArchivDropdown();
+        }
+
+        document.getElementById("docDate").value = getHeuteDE();
+        document.getElementById("lsDate").value = state.lsDate || "";
+        syncLieferscheinNr(state.lieferscheinNr || "", false);
+        document.getElementById("ab-falschgeld").value = state.abFalschgeld || 0;
+        document.getElementById("ab-verlust").value = state.abVerlust || 0;
+        document.getElementById("prov-pct").value = state.provPct || 0;
+        document.getElementById("ab-akonto").value = state.abAkonto || 0;
+        document.getElementById("ab-geldkarte").value = state.abGeldkarte || 0;
+        document.getElementById("ab-sonstiges").value = state.abSonstiges || 0;
+        renderAll();
+
+        const archivInfo = loadedArchiv ? ` (inkl. ${loadedArchiv.length} archivierter Perioden)` : "";
+        alert("Backup erfolgreich geladen" + archivInfo + "!");
+      }
+    } catch (err) {
+      alert("Fehler beim Lesen der Backup-Datei.");
+    }
+    event.target.value = "";
+  };
+  reader.readAsText(file);
+}
+
+
+function starteNeueAbrechnungsperiode() {
+  if (!confirm("Möchtest du eine neue Abrechnungsperiode starten?\n\n• Die aktuelle Periode wird automatisch im Archiv gespeichert\n• 'Heutiger Bestand' wird zum neuen 'Best alt'\n• Zählerstände 'NEU' werden zu 'ALT'\n• Zugang, Retouren und Geldabzüge werden auf 0 gesetzt")) {
+    return;
+  }
+
+  // Aktuelle Periode vor dem Zurücksetzen im Archiv sichern
+  archiviereAktuellePeriode();
+
+
+  // 1. Artikelbestände vortragen
+  state.items.forEach(item => {
+    item.best_alt = item.heutiger_bestand || 0;
+    item.zug = 0;
+    item.retouren = 0;
+    item.kartons = 0;
+  });
+
+  // 2. Zählerstände NEU -> ALT übertragen
+  state.meters.forEach(m => {
+    m.alt = m.neu || 0;
+  });
+
+  // 3. Geldabzüge zurücksetzen (Provision % bleibt erhalten)
+  state.abFalschgeld = 0;
+  state.abVerlust = 0;
+  state.abAkonto = 0;
+  state.abGeldkarte = 0;
+  state.abSonstiges = 0;
+
+  document.getElementById("ab-falschgeld").value = 0;
+  document.getElementById("ab-verlust").value = 0;
+  document.getElementById("ab-akonto").value = 0;
+  document.getElementById("ab-geldkarte").value = 0;
+  document.getElementById("ab-sonstiges").value = 0;
+
+  // 4. Aktuelles Datum eintragen & Lieferschein-Nr. leeren
+  const heute = new Date();
+  const tag = String(heute.getDate()).padStart(2, "0");
+  const monat = String(heute.getMonth() + 1).padStart(2, "0");
+  const jahr = heute.getFullYear();
+  document.getElementById("docDate").value = tag + "." + monat + "." + jahr;
+  syncLieferscheinNr("", false);
+
+  recalcAll();
+  alert("Neue Abrechnungsperiode gestartet! Alle Endbestände und Zählerstände wurden als neue Startwerte übernommen.");
+}
+
+
+
+
+
+// NEU: Warenausgang für nächste Woche auf 0 setzen und Vermerk inkl. Summe speichern
+function naechsteWocheWarenausgang() {
+  if (!confirm("Warenausgang für die nächste Woche auf 0 setzen?\n\n• Alle Felder unter 'Warenausgang' werden auf 0 gesetzt\n• 'Heutiger Bestand' und 'Verkauft' bleiben unverändert erhalten\n• Datum & entnommene Gesamtmenge werden auf Blatt 3 vermerkt")) {
+    return;
+  }
+
+  let gesamtEntnommen = 0;
+
+  // Warenausgang zusammenzählen und auf 0 setzen
+  state.items.forEach(item => {
+    gesamtEntnommen += (item.kartons || 0);
+    item.kartons = 0;
+  });
+
+  // Aktuelles Datum & Uhrzeit für den Vermerk erzeugen
+  const jetzt = new Date();
+  const datumZeit = jetzt.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) + ", " +
+                    jetzt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr";
+
+  state.wochenVermerk = "Letzte Woche abgeschlossen am " + datumZeit + " (Warenausgang: " + gesamtEntnommen + " Stk.)";
+
+  recalcAll();
+  alert("Warenausgang (" + gesamtEntnommen + " Stk.) wurde auf 0 gesetzt und auf Blatt 3 vermerkt!");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function druckeNurBestellung() {
+  const bestellte = state.items.filter(item => (item.bestellung || 0) > 0);
+  if (bestellte.length === 0) {
+    alert("Keine Artikel mit Bestellmenge (> 0) vorhanden!");
+    return;
+  }
+  document.getElementById("best-only-ordered").checked = true;
+  renderBestellungTable();
+  window.print();
+}
+
+function kopiereBestellungAlsText() {
+  const bestellte = state.items.filter(item => (item.bestellung || 0) > 0);
+  if (bestellte.length === 0) {
+    alert("Keine Artikel mit Bestellmenge (> 0) vorhanden!");
+    return;
+  }
+
+  let text = "NACHBESTELLUNG - Station 57180 (Schlüchtern, Immergut)\n";
+  text += "Datum: " + (document.getElementById("docDate").value || "") + "\n";
+  text += "--------------------------------------------------\n";
+
+  let gesamtStk = 0;
+  bestellte.forEach(item => {
+    const qty = item.bestellung || 0;
+    gesamtStk += qty;
+    const leInfo = item.le > 0 ? " (" + (qty / item.le).toFixed(1).replace(".", ",") + " LE)" : "";
+    text += "Art. " + item.art + " | " + item.name + ": " + qty + " Stk." + leInfo + "\n";
+  });
+
+  text += "--------------------------------------------------\n";
+  text += "Gesamtmenge: " + gesamtStk + " Stück";
+
+  navigator.clipboard.writeText(text).then(() => {
+    alert("Bestellliste wurde kopiert!\n\nDu kannst sie jetzt einfach mit Strg+V (oder Rechtsklick -> Einfügen) in deine E-Mail oder WhatsApp-Nachricht einfügen.");
+  }).catch(() => {
+    prompt("Bitte folgenden Text kopieren (Strg+C):", text);
+  });
+}
+
+  function druckeMhdListePdf() {
+    const eintraege = [];
+
+    state.items.forEach(item => {
+      normalizeItemMhds(item);
+      item.mhds.forEach(m => {
+        if (!m.date) return;
+        const menge = Number(m.qty) || 0;
+        if (menge <= 0) return;
+        eintraege.push({
+          date: m.date,
+          art: item.art,
+          name: item.name,
+          qty: menge,
+          loc: getLocName(m.loc),
+          statusInfo: getMhdStatus(m.date)
+        });
+      });
+    });
+
+    if (eintraege.length === 0) {
+      alert("Es sind aktuell keine Artikel mit eingetragenem MHD und Bestand (> 0) vorhanden!");
+      return;
+    }
+
+    // Ältestes MHD ganz nach oben sortieren
+    eintraege.sort((a, b) => a.date.localeCompare(b.date));
+
+    const datumHeute = document.getElementById("docDate").value || getHeuteDE();
+    const lsNr = state.lieferscheinNr ? ` | Lieferschein-Nr.: ${state.lieferscheinNr}` : "";
+
+    let rowsHtml = "";
+    eintraege.forEach(e => {
+      const rowBg = e.statusInfo.status === "expired" ? "background:#fee2e2;" : (e.statusInfo.status === "warning" ? "background:#fef3c7;" : "");
+      rowsHtml += `
+        <tr style="${rowBg}">
+          <td style="font-weight:700;">${formatDateDE(e.date)}</td>
+          <td><strong>${e.art}</strong></td>
+          <td style="text-align:left !important;"><strong>${e.name}</strong></td>
+          <td><strong>${e.qty} Stk.</strong></td>
+          <td>${e.loc}</td>
+          <td>${e.statusInfo.label}</td>
+        </tr>`;
+    });
+
+    const printArea = document.getElementById("mhd-pdf-print-area");
+    printArea.innerHTML = `
+      <div style="border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:flex-end;">
+        <div>
+          <h2 style="margin:0; font-size:1.3rem;">MHD-Übersicht (ältestes Datum oben)</h2>
+          <div style="font-size:0.9rem; color:#334155; margin-top:4px;">Station 57180 – Schlüchtern, Immergut (David Rosenberger)${lsNr}</div>
+        </div>
+        <div style="font-size:0.9rem; font-weight:700;">Stand: ${datumHeute}</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:105px;">MHD</th>
+            <th style="width:70px;">Art-Nr.</th>
+            <th style="text-align:left !important;">Artikelbezeichnung</th>
+            <th style="width:90px;">Menge</th>
+            <th style="width:155px;">Standort</th>
+            <th style="width:140px;">Status</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+      <div style="margin-top:12px; font-size:0.85rem; font-weight:700; text-align:right;">
+        Gesamt: ${eintraege.length} erfasste MHD-Chargen
+      </div>
+    `;
+
+    document.body.classList.add("printing-mhd-pdf");
+    window.print();
+    setTimeout(() => {
+      document.body.classList.remove("printing-mhd-pdf");
+    }, 500);
+  }
+
+
+
+
+  // --- TASCHENRECHNER POPUP (1-30) LOGIK ---
+  let activeNumpadInput = null;
+
+  function initNumpad() {
+    const grid = document.getElementById("numpad-grid");
+    grid.innerHTML = "";
+
+    // Taste 0
+    const btn0 = document.createElement("button");
+    btn0.type = "button";
+    btn0.className = "numpad-btn zero-btn";
+    btn0.textContent = "0 (Löschen)";
+    btn0.onclick = () => selectNumpadValue(0);
+    grid.appendChild(btn0);
+
+    // Tasten 1 bis 30
+    for (let i = 1; i <= 30; i++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "numpad-btn";
+      btn.textContent = i;
+      btn.onclick = () => selectNumpadValue(i);
+      grid.appendChild(btn);
+    }
+
+    // Event-Listener für alle Zahlenfelder (außer MHD / Datum)
+    document.addEventListener("click", function(e) {
+      const target = e.target;
+
+
+      if (target && target.tagName === "INPUT" && target.type === "number" && target.id !== "numpad-input" && !target.classList.contains("refill-cell-input")) {
+
+
+        openNumpad(target);
+      }
+    });
+  }
+
+  function openNumpad(inputEl) {
+    activeNumpadInput = inputEl;
+    const disp = document.getElementById("numpad-input");
+    disp.value = inputEl.value;
+    document.getElementById("numpad-overlay").style.display = "flex";
+    setTimeout(() => disp.select(), 50);
+  }
+
+  function selectNumpadValue(val) {
+    if (!activeNumpadInput) return;
+    activeNumpadInput.value = val;
+    // Löst das passende Event aus (change für Tabellenfelder, input für Geldabzüge)
+    if (activeNumpadInput.onchange) {
+      activeNumpadInput.dispatchEvent(new Event("change", { bubbles: true }));
+    } else {
+      activeNumpadInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    closeNumpad();
+  }
+
+
+  function confirmNumpad() {
+    if (!activeNumpadInput) return;
+    const val = document.getElementById("numpad-input").value;
+    selectNumpadValue(val);
+  }
+
+  function closeNumpad() {
+    document.getElementById("numpad-overlay").style.display = "none";
+    activeNumpadInput = null;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // --- AUTOMATEN BEFÜLLEN (ALLE AUTOMATEN GLEICHZEITIG + FIFO-MHD + UNDO) ---
+  let activeRefillIdx = null;
+  let refillBackupsByArt = {};
+
+  function openRefillModal(idx) {
+    const item = state.items[idx];
+    if (!item || item.is_coffee) return;
+    ensureItemLocations(item);
+    activeRefillIdx = idx;
+
+    document.getElementById("refill-art-name").textContent = `Art. ${item.art} - ${item.name}`;
+    document.getElementById("refill-home-qty").textContent = item.best_zuhause || 0;
+
+    const tbody = document.getElementById("refill-automaten-tbody");
+    tbody.innerHTML = "";
+
+    (state.snackAutomaten || []).forEach(aut => {
+      const vorher = (item.best_automaten && item.best_automaten[aut.id]) || 0;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="text-align:left !important; font-weight:700;">${aut.name}</td>
+        <td class="num calc-cell">${vorher}</td>
+        <td class="num">
+          <input type="number" class="refill-cell-input" data-aut="${aut.id}" data-type="ist" value="${vorher}" oninput="updateRefillPreview()" style="width:70px; text-align:right;">
+        </td>
+        <td class="num">
+          <input type="number" class="refill-cell-input" data-aut="${aut.id}" data-type="add" value="0" oninput="updateRefillPreview()" style="width:70px; text-align:right; border-color:#2563eb;">
+        </td>
+        <td class="num" style="font-weight:700; color:#1e3a8a;" id="refill-new-${aut.id}">${vorher}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const undoBox = document.getElementById("refill-undo-container");
+    if (undoBox) {
+      undoBox.style.display = (refillBackupsByArt && refillBackupsByArt[item.art]) ? "block" : "none";
+    }
+
+    updateRefillPreview();
+    document.getElementById("refill-overlay").style.display = "flex";
+  }
+
+  function updateRefillPreview() {
+    if (activeRefillIdx === null) return;
+    const item = state.items[activeRefillIdx];
+    const bisherZuhause = item.best_zuhause || 0;
+
+    let summeNachgefuellt = 0;
+    let summeVerkauft = 0;
+
+    (state.snackAutomaten || []).forEach(aut => {
+      const vorher = (item.best_automaten && item.best_automaten[aut.id]) || 0;
+      const istInput = document.querySelector(`.refill-cell-input[data-aut="${aut.id}"][data-type="ist"]`);
+      const addInput = document.querySelector(`.refill-cell-input[data-aut="${aut.id}"][data-type="add"]`);
+
+      const gezahltIst = istInput ? (parseFloat(istInput.value) || 0) : vorher;
+      const aufgefuellt = addInput ? (parseFloat(addInput.value) || 0) : 0;
+
+      if (gezahltIst < vorher) summeVerkauft += (vorher - gezahltIst);
+      summeNachgefuellt += aufgefuellt;
+
+      const neuCell = document.getElementById(`refill-new-${aut.id}`);
+      if (neuCell) neuCell.textContent = (gezahltIst + aufgefuellt);
+    });
+
+    const neuZuhause = Math.max(0, bisherZuhause - summeNachgefuellt);
+    const warnText = summeNachgefuellt > bisherZuhause
+      ? `<div style="color:#b91c1c; font-weight:700; margin-top:4px;">⚠ Achtung: Du entnimmst ${summeNachgefuellt} Stk., aber Zuhause sind nur ${bisherZuhause} Stk. eingetragen!</div>`
+      : "";
+
+    document.getElementById("refill-summary-box").innerHTML =
+      `<strong>Gesamt-Vorschau:</strong><br>` +
+      `• Erkannte Verkäufe in Automaten: <strong>${summeVerkauft} Stk.</strong> (ältestes MHD wird abgezogen)<br>` +
+      `• Entnahme aus Zuhause: <strong>-${summeNachgefuellt} Stk.</strong> &rarr; Neuer Bestand Zuhause: <strong>${neuZuhause} Stk.</strong>` +
+      warnText;
+  }
+
+  function transferMhdHomeToAutomat(item, menge, targetAutId) {
+    if (menge <= 0) return;
+    normalizeItemMhds(item);
+
+    const homeEntries = item.mhds
+      .filter(m => (m.loc || "zuhause") === "zuhause")
+      .sort((a, b) => (a.date || "9999-12-31").localeCompare(b.date || "9999-12-31"));
+
+    let rest = menge;
+    for (let i = 0; i < homeEntries.length && rest > 0; i++) {
+      const verf = Number(homeEntries[i].qty) || 0;
+      if (verf <= 0) continue;
+
+      const umzulagern = Math.min(verf, rest);
+      homeEntries[i].qty = verf - umzulagern;
+      rest -= umzulagern;
+
+      item.mhds.push({
+        qty: umzulagern,
+        date: homeEntries[i].date || "",
+        loc: targetAutId
+      });
+    }
+
+    item.mhds = item.mhds.filter(m => (Number(m.qty) || 0) > 0);
+    normalizeItemMhds(item);
+  }
+
+  function undoLastRefill() {
+    if (activeRefillIdx === null) return;
+    const currentItem = state.items[activeRefillIdx];
+    const backup = refillBackupsByArt[currentItem.art];
+    if (!backup) return;
+
+    if (!confirm(`Möchtest du die letzte Buchung für "${backup.name}" (vom ${backup.time}) wirklich rückgängig machen? Alle anderen Artikel bleiben unverändert!`)) {
+      return;
+    }
+
+    state.items[activeRefillIdx] = JSON.parse(JSON.stringify(backup.snapshot));
+    delete refillBackupsByArt[currentItem.art];
+
+    closeRefillModal();
+    recalcAll();
+    alert(`Die Buchung für "${backup.name}" wurde vollständig rückgängig gemacht!`);
+  }
+
+  function confirmRefillModal() {
+    if (activeRefillIdx === null) return;
+    const item = state.items[activeRefillIdx];
+    const bisherZuhause = item.best_zuhause || 0;
+
+    let gesamtAufgefuellt = 0;
+    const aktionen = [];
+
+    (state.snackAutomaten || []).forEach(aut => {
+      const vorher = (item.best_automaten && item.best_automaten[aut.id]) || 0;
+      const istInput = document.querySelector(`.refill-cell-input[data-aut="${aut.id}"][data-type="ist"]`);
+      const addInput = document.querySelector(`.refill-cell-input[data-aut="${aut.id}"][data-type="add"]`);
+
+      const gezahltIst = istInput ? (parseFloat(istInput.value) || 0) : vorher;
+      const aufgefuellt = addInput ? (parseFloat(addInput.value) || 0) : 0;
+
+      gesamtAufgefuellt += aufgefuellt;
+      aktionen.push({ autId: aut.id, vorher, gezahltIst, aufgefuellt });
+    });
+
+    if (gesamtAufgefuellt > bisherZuhause) {
+      if (!confirm(`Hinweis: Du füllst insgesamt ${gesamtAufgefuellt} Stk. nach, aber Zuhause sind nur ${bisherZuhause} Stk. eingetragen. Trotzdem fortfahren?`)) {
+        return;
+      }
+    }
+
+    // Zustand genau für diesen Artikel sichern (für "Rückgängig")
+    const jetzt = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    refillBackupsByArt[item.art] = {
+      art: item.art,
+      name: item.name,
+      time: jetzt + " Uhr",
+      snapshot: JSON.parse(JSON.stringify(item))
+    };
+
+    // Für jeden Automaten Verkäufe abziehen & Nachfüllmenge inkl. MHD umbuchen
+    aktionen.forEach(a => {
+      if (a.gezahltIst < a.vorher) {
+        deductFromOldestMhd(item, a.vorher - a.gezahltIst, a.autId);
+      }
+      if (a.aufgefuellt > 0) {
+        transferMhdHomeToAutomat(item, a.aufgefuellt, a.autId);
+      }
+      item.best_automaten[a.autId] = a.gezahltIst + a.aufgefuellt;
+    });
+
+    if (gesamtAufgefuellt > 0) {
+      item.best_zuhause = Math.max(0, bisherZuhause - gesamtAufgefuellt);
+      item.kartons = (item.kartons || 0) + gesamtAufgefuellt;
+    }
+
+    const sumAutomaten = Object.values(item.best_automaten).reduce((a, b) => a + (Number(b) || 0), 0);
+    item.heutiger_bestand = (Number(item.best_zuhause) || 0) + sumAutomaten;
+
+    closeRefillModal();
+    recalcAll();
+  }
+
+  function closeRefillModal() {
+    document.getElementById("refill-overlay").style.display = "none";
+    activeRefillIdx = null;
+  }
+
+
+// --- EXAKTE BESTÜCKUNGSPLÄNE DER 3 KAFFEEAUTOMATEN (RONDELL 16 OBEN BIS 1 UNTEN) ---
+const DEFAULT_COFFEE_PLANS = {
+  "908W": {
+    name: "908 W Schlüchtern (Immergut Produktion - Plan 57180/1)",
+    slots: [
+      { rondell: 16, art: "423", max: 10 },
+      { rondell: 15, art: "424", max: 10 },
+      { rondell: 14, art: "421", max: 10 },
+      { rondell: 13, art: "410", max: 10 },
+      { rondell: 12, art: "412", max: 10 },
+      { rondell: 11, art: "416", max: 10 },
+      { rondell: 10, art: "405", max: 10 },
+      { rondell: 9,  art: "400", max: 10 },
+      { rondell: 8,  art: "400", max: 10 },
+      { rondell: 7,  art: "409", max: 10 },
+      { rondell: 6,  art: "409", max: 10 },
+      { rondell: 5,  art: "401", max: 10 },
+      { rondell: 4,  art: "401", max: 10 },
+      { rondell: 3,  art: "406", max: 10 },
+      { rondell: 2,  art: "407", max: 10 },
+      { rondell: 1,  art: "408", max: 10 }
+    ]
+  },
+  "924W": {
+    name: "924 W Schlüchtern (Immergut 1. OG Kantine - Plan 57180/2)",
+    slots: [
+      { rondell: 16, art: "422", max: 10 },
+      { rondell: 15, art: "416", max: 10 },
+      { rondell: 14, art: "412", max: 10 },
+      { rondell: 13, art: "421", max: 10 },
+      { rondell: 12, art: "413", max: 10 },
+      { rondell: 11, art: "420", max: 10 },
+      { rondell: 10, art: "423", max: 10 },
+      { rondell: 9,  art: "405", max: 10 },
+      { rondell: 8,  art: "400", max: 10 },
+      { rondell: 7,  art: "410", max: 10 },
+      { rondell: 6,  art: "409", max: 10 },
+      { rondell: 5,  art: "400", max: 10 },
+      { rondell: 4,  art: "407", max: 10 },
+      { rondell: 3,  art: "401", max: 10 },
+      { rondell: 2,  art: "406", max: 10 },
+      { rondell: 1,  art: "408", max: 10 }
+    ]
+  },
+  "927W": {
+    name: "927 W Steinau (Logistics Fulda / ID L. IC - Plan 57180/5)",
+    slots: [
+      { rondell: 16, art: "424", max: 10 },
+      { rondell: 15, art: "422", max: 10 },
+      { rondell: 14, art: "421", max: 10 },
+      { rondell: 13, art: "416", max: 10 },
+      { rondell: 12, art: "412", max: 10 },
+      { rondell: 11, art: "423", max: 10 },
+      { rondell: 10, art: "400", max: 10 },
+      { rondell: 9,  art: "420", max: 10 },
+      { rondell: 8,  art: "413", max: 10 },
+      { rondell: 7,  art: "410", max: 10 },
+      { rondell: 6,  art: "409", max: 10 },
+      { rondell: 5,  art: "405", max: 10 },
+      { rondell: 4,  art: "405", max: 10 },
+      { rondell: 3,  art: "406", max: 10 },
+      { rondell: 2,  art: "407", max: 10 },
+      { rondell: 1,  art: "408", max: 10 }
+    ]
+  }
+};
+
+function ensureAllPlansInitialized() {
+  if (!state.plans) state.plans = JSON.parse(JSON.stringify(DEFAULT_PLANS));
+  if (!state.coffeePlans) state.coffeePlans = JSON.parse(JSON.stringify(DEFAULT_COFFEE_PLANS));
+  // Automatische Umstellung alter gespeicherter Pläne auf Rondell 16..1
+  Object.keys(state.coffeePlans).forEach(kId => {
+    const slots = state.coffeePlans[kId].slots || [];
+    if (slots.length > 0 && typeof slots[0].rondell === "undefined") {
+      slots.forEach((s, idx) => { s.rondell = 16 - idx; });
+    }
+  });
+}
+
+function openPlanEditorModal() {
+  ensureAllPlansInitialized();
+  const sel = document.getElementById("plan-editor-select");
+  sel.innerHTML = "";
+
+  (state.snackAutomaten || []).forEach(aut => {
+    const opt = document.createElement("option");
+    opt.value = "SNACK:" + aut.id;
+    opt.textContent = "🍫 Snackautomat: " + aut.name;
+    sel.appendChild(opt);
+  });
+
+  Object.keys(state.coffeePlans).forEach(kId => {
+    const opt = document.createElement("option");
+    opt.value = "COFFEE:" + kId;
+    opt.textContent = "☕ Kaffeeautomat: " + state.coffeePlans[kId].name;
+    sel.appendChild(opt);
+  });
+
+  renderPlanEditorTable();
+  document.getElementById("plan-editor-overlay").style.display = "flex";
+}
+
+function closePlanEditorModal() {
+  document.getElementById("plan-editor-overlay").style.display = "none";
+}
+
+function renderPlanEditorTable() {
+  ensureAllPlansInitialized();
+  const val = document.getElementById("plan-editor-select").value;
+  if (!val) return;
+  const [type, id] = val.split(":");
+
+  const tbody = document.getElementById("plan-editor-tbody");
+  const theadRow = tbody.closest("table").querySelector("thead tr");
+  tbody.innerHTML = "";
+
+  if (type === "COFFEE") {
+    theadRow.innerHTML = `
+      <th style="width:115px; text-align:left !important;">Rondell-Nr.</th>
+      <th style="text-align:left !important;">Bechersorte / Artikel (Art-Nr. &amp; Name)</th>
+      <th style="width:95px;">Max (Stangen)</th>
+      <th style="width:45px;">Akt.</th>
+    `;
+    const slots = (state.coffeePlans[id]?.slots || []).slice().sort((a, b) => (b.rondell || 0) - (a.rondell || 0));
+    slots.forEach(s => {
+      let optionsHtml = `<option value="">-- Artikel wählen --</option>`;
+      state.items.forEach(it => {
+        const selected = it.art === s.art ? " selected" : "";
+        optionsHtml += `<option value="${it.art}"${selected}>Art. ${it.art} – ${it.name}</option>`;
+      });
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="font-weight:700; text-align:left !important;">
+          Rondell <input type="number" class="pe-rondell" value="${s.rondell}" style="width:48px; display:inline-block;">
+        </td>
+        <td><select class="pe-art">${optionsHtml}</select></td>
+        <td><input type="number" class="pe-max" value="${s.max}" style="width:70px;"></td>
+        <td class="center"><button type="button" class="btn-del" onclick="this.closest('tr').remove()">×</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } else {
+    theadRow.innerHTML = `
+      <th style="width:75px;">Sortier-Nr.</th>
+      <th style="width:140px; text-align:left !important;">Fach / Spirale</th>
+      <th style="text-align:left !important;">Artikel (Art-Nr. &amp; Name)</th>
+      <th style="width:85px;">Max (Stk.)</th>
+      <th style="width:45px;">Akt.</th>
+    `;
+    const planObj = state.plans[id] || {};
+    const rows = Object.keys(planObj)
+      .map(art => ({ order: planObj[art].order || 99, slot: planObj[art].slot || "", art: art, max: planObj[art].max || 12 }))
+      .sort((a, b) => a.order - b.order);
+
+    rows.forEach(r => {
+      let optionsHtml = `<option value="">-- Artikel wählen --</option>`;
+      state.items.forEach(it => {
+        const selected = it.art === r.art ? " selected" : "";
+        optionsHtml += `<option value="${it.art}"${selected}>Art. ${it.art} – ${it.name}</option>`;
+      });
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="number" class="pe-order" value="${r.order}" style="width:65px;"></td>
+        <td><input type="text" class="pe-slot text-left" value="${r.slot}" placeholder="z. B. F1 / S1"></td>
+        <td><select class="pe-art">${optionsHtml}</select></td>
+        <td><input type="number" class="pe-max" value="${r.max}" style="width:70px;"></td>
+        <td class="center"><button type="button" class="btn-del" onclick="this.closest('tr').remove()">×</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+function addPlanEditorRow() {
+  const val = document.getElementById("plan-editor-select").value;
+  if (!val) return;
+  const [type] = val.split(":");
+  const tbody = document.getElementById("plan-editor-tbody");
+
+  let optionsHtml = `<option value="">-- Artikel wählen --</option>`;
+  state.items.forEach(it => {
+    optionsHtml += `<option value="${it.art}">Art. ${it.art} – ${it.name}</option>`;
+  });
+
+  const tr = document.createElement("tr");
+  if (type === "COFFEE") {
+    tr.innerHTML = `
+      <td style="font-weight:700; text-align:left !important;">
+        Rondell <input type="number" class="pe-rondell" value="1" style="width:48px; display:inline-block;">
+      </td>
+      <td><select class="pe-art">${optionsHtml}</select></td>
+      <td><input type="number" class="pe-max" value="10" style="width:70px;"></td>
+      <td class="center"><button type="button" class="btn-del" onclick="this.closest('tr').remove()">×</button></td>
+    `;
+  } else {
+    tr.innerHTML = `
+      <td><input type="number" class="pe-order" value="99" style="width:65px;"></td>
+      <td><input type="text" class="pe-slot text-left" value="" placeholder="z. B. F1 / S1"></td>
+      <td><select class="pe-art">${optionsHtml}</select></td>
+      <td><input type="number" class="pe-max" value="12" style="width:70px;"></td>
+      <td class="center"><button type="button" class="btn-del" onclick="this.closest('tr').remove()">×</button></td>
+    `;
+  }
+  tbody.appendChild(tr);
+}
+
+function savePlanEditorChanges() {
+  ensureAllPlansInitialized();
+  const val = document.getElementById("plan-editor-select").value;
+  if (!val) return;
+  const [type, id] = val.split(":");
+  const trs = document.querySelectorAll("#plan-editor-tbody tr");
+
+  if (type === "SNACK") {
+    const newPlan = {};
+    trs.forEach(tr => {
+      const order = parseInt(tr.querySelector(".pe-order").value, 10) || 99;
+      const slot = tr.querySelector(".pe-slot").value.trim();
+      const art = tr.querySelector(".pe-art").value;
+      const max = parseInt(tr.querySelector(".pe-max").value, 10) || 12;
+      if (art) newPlan[art] = { order, slot, max };
+    });
+    state.plans[id] = newPlan;
+  } else {
+    const newSlots = [];
+    trs.forEach(tr => {
+      const rondell = parseInt(tr.querySelector(".pe-rondell").value, 10) || 1;
+      const art = tr.querySelector(".pe-art").value;
+      const max = parseInt(tr.querySelector(".pe-max").value, 10) || 10;
+      if (art) newSlots.push({ rondell, art, max });
+    });
+    state.coffeePlans[id].slots = newSlots;
+  }
+
+  recalcAll();
+  renderPlanEditorTable();
+  alert("Bestückungsplan wurde erfolgreich gespeichert!");
+}
+
+
+// --- DRUCKFUNKTION FÜR SNACK- UND KAFFEE-BEFÜLLZETTEL ---
+function druckeBefuellzettelPdf(targetSelection = "ALL") {
+  ensureAllPlansInitialized();
+  const datumHeute = document.getElementById("docDate").value || getHeuteDE();
+  const sheets = [];
+
+  // 1. Snackautomaten aufbereiten
+  (state.snackAutomaten || []).forEach(aut => {
+    const key = "SNACK:" + aut.id;
+    if (targetSelection !== "ALL" && targetSelection !== key) return;
+
+    const plan = state.plans[aut.id] || {};
+    const itemsInPlan = state.items
+      .filter(item => plan[item.art])
+      .sort((a, b) => (plan[a.art].order || 999) - (plan[b.art].order || 999));
+
+    let rowsHtml = "";
+    itemsInPlan.forEach(item => {
+      const slotInfo = plan[item.art];
+      const sollAut = (item.best_automaten && item.best_automaten[aut.id]) || 0;
+      const lagerZh = item.best_zuhause || 0;
+      const mhdText = item.mhd ? formatDateDE(item.mhd) : "-";
+
+      rowsHtml += `
+        <tr style="height: 27px;">
+          <td style="font-weight:700; text-align:left !important;">${slotInfo.slot}</td>
+          <td><strong>${item.art}</strong></td>
+          <td style="text-align:left !important;"><strong>${item.name}</strong></td>
+          <td>${slotInfo.max}</td>
+          <td style="color:#475569;">${sollAut}</td>
+          <td style="color:#475569;">${lagerZh}</td>
+          <td style="font-size:0.75rem;">${mhdText}</td>
+          <td style="background:#f8fafc; border: 1.5px solid #475569;"></td>
+          <td style="background:#f8fafc; border: 1.5px solid #475569;"></td>
+          <td style="background:#f8fafc; border: 1.5px solid #475569;"></td>
+        </tr>`;
+    });
+
+    sheets.push(`
+      <div style="border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:flex-end;">
+        <div>
+          <h2 style="margin:0; font-size:1.2rem;">Snackautomat Befüllzettel: ${aut.name}</h2>
+          <div style="font-size:0.82rem; color:#334155;">Station 57180 – David Rosenberger | Inkl. MHD-Kontrolle vor Ort</div>
+        </div>
+        <div style="text-align:right; font-size:0.82rem;">
+          <strong>Datum:</strong> ${datumHeute} &nbsp;|&nbsp; <strong>Zählerstand (€):</strong> ______________
+        </div>
+      </div>
+      <table style="font-size:0.78rem;">
+        <thead>
+          <tr>
+            <th style="width:105px; text-align:left !important;">Fach / Spirale</th>
+            <th style="width:50px;">Art-Nr.</th>
+            <th style="text-align:left !important;">Artikel</th>
+            <th style="width:42px;">Max</th>
+            <th style="width:50px;">Soll Aut.</th>
+            <th style="width:55px;">Lager ZH</th>
+            <th style="width:72px;">System-MHD</th>
+            <th style="width:72px; background:#dbeafe;">IST-Rest<br><small>(Stk.)</small></th>
+            <th style="width:72px; background:#dcfce7;">Aufgefüllt<br><small>(+ Stk.)</small></th>
+            <th style="width:95px; background:#fef3c7;">Neues MHD<br><small>(vor Ort)</small></th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml || '<tr><td colspan="10">Keine Artikel im Plan hinterlegt.</td></tr>'}</tbody>
+      </table>
+    `);
+  });
+
+  // 2. Kaffeeautomaten aufbereiten (Rondell 16 bis 1)
+  Object.keys(state.coffeePlans).forEach(kId => {
+    const key = "COFFEE:" + kId;
+    if (targetSelection !== "ALL" && targetSelection !== key) return;
+
+    const cPlan = state.coffeePlans[kId];
+    const slots = (cPlan.slots || []).slice().sort((a, b) => (b.rondell || 0) - (a.rondell || 0));
+
+    let rowsHtml = "";
+    slots.forEach(s => {
+      const item = state.items.find(i => i.art === s.art);
+      const itemName = item ? item.name : "(Artikel nicht im Stamm)";
+      const leInfo = item && item.le ? item.le + "er" : "-";
+      const lagerStangen = item ? (item.stangen || 0) : 0;
+
+      rowsHtml += `
+        <tr style="height: 28px;">
+          <td style="font-weight:700; text-align:left !important;">Rondell ${s.rondell}</td>
+          <td><strong>${s.art}</strong></td>
+          <td style="text-align:left !important;"><strong>${itemName}</strong></td>
+          <td>${leInfo}</td>
+          <td style="color:#475569;">${lagerStangen} Stg.</td>
+          <td style="background:#f8fafc; border: 1.5px solid #475569;"></td>
+          <td style="background:#f8fafc; border: 1.5px solid #475569;"></td>
+        </tr>`;
+    });
+
+    sheets.push(`
+      <div style="border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:flex-end;">
+        <div>
+          <h2 style="margin:0; font-size:1.2rem;">Kaffeeautomat Befüllzettel: ${cPlan.name}</h2>
+          <div style="font-size:0.82rem; color:#334155;">Station 57180 – David Rosenberger | Rondell 16 bis 1</div>
+        </div>
+        <div style="text-align:right; font-size:0.82rem;">
+          <strong>Datum:</strong> ${datumHeute} &nbsp;|&nbsp; <strong>Zählerstand (€):</strong> ______________
+        </div>
+      </div>
+      <table style="font-size:0.8rem;">
+        <thead>
+          <tr>
+            <th style="width:105px; text-align:left !important;">Rondell</th>
+            <th style="width:60px;">Art-Nr.</th>
+            <th style="text-align:left !important;">Bechersorte / Artikel</th>
+            <th style="width:65px;">Stange (LE)</th>
+            <th style="width:85px;">Lager Zuhause</th>
+            <th style="width:110px; background:#dbeafe;">IST-Rest<br><small>(Stangen / Becher)</small></th>
+            <th style="width:110px; background:#dcfce7;">Aufgefüllt<br><small>(+ Stangen)</small></th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml || '<tr><td colspan="7">Keine Schächte im Plan hinterlegt.</td></tr>'}</tbody>
+      </table>
+      <div style="margin-top:10px; font-size:0.78rem; color:#475569;">
+        <strong>Notizen / Reinigung / Störung vor Ort:</strong> ___________________________________________________________________________
+      </div>
+    `);
+  });
+
+  if (sheets.length === 0) {
+    alert("Keine Zettel zum Drucken ausgewählt.");
+    return;
+  }
+
+  const finalHtml = sheets.map((html, idx) => {
+    const brk = idx < sheets.length - 1 ? "page-break-after: always;" : "";
+    return `<div style="${brk}">${html}</div>`;
+  }).join("");
+
+  const printArea = document.getElementById("refill-sheet-print-area");
+  printArea.innerHTML = finalHtml;
+
+  document.body.classList.add("printing-refill-pdf");
+  window.print();
+  setTimeout(() => {
+    document.body.classList.remove("printing-refill-pdf");
+  }, 500);
+}
+
+// --- START-POPUP FÜR MHD & KRITISCHE BESTÄNDE ---
+function checkStartupAlerts() {
+  const KRITISCHER_BESTAND_GRENZE = 5; // Hier kannst du deinen Wunschwert anpassen
+  const mhdWarnungen = [];
+  const bestandWarnungen = [];
+
+  state.items.forEach(item => {
+    normalizeItemMhds(item);
+
+    // 1. MHD prüfen (abgelaufen oder <= 14 Tage, nur wenn Menge > 0)
+    item.mhds.forEach(entry => {
+      if (!entry.date || (Number(entry.qty) || 0) <= 0) return;
+      const info = getMhdStatus(entry.date);
+      if (info.status === "expired" || info.status === "warning") {
+        const locLabel = getLocName(entry.loc);
+        mhdWarnungen.push(`<li><strong>Art. ${item.art} – ${item.name}</strong>: MHD ${formatDateDE(entry.date)} &rarr; <strong style="color:#b91c1c;">${info.label}</strong> (${entry.qty} Stk. • ${locLabel})</li>`);
+      }
+    });
+
+    // 2. Kritischen Bestand prüfen (ohne Pfand-Artikel 155, 159, 160)
+    const gesamtBestand = Number(item.heutiger_bestand) || 0;
+    if (!["155", "159", "160"].includes(item.art) && gesamtBestand <= KRITISCHER_BESTAND_GRENZE) {
+      const farbe = gesamtBestand === 0 ? "#b91c1c" : "#d97706";
+      const statusText = gesamtBestand === 0 ? "AUSVERKAUFT (0 Stk.)" : `Nur noch ${gesamtBestand} Stk.`;
+      bestandWarnungen.push(`<li><strong>Art. ${item.art} – ${item.name}</strong>: <strong style="color:${farbe};">${statusText}</strong></li>`);
+    }
+  });
+
+  // Popup nur öffnen, wenn es tatsächlich Warnungen gibt
+  if (mhdWarnungen.length === 0 && bestandWarnungen.length === 0) return;
+
+  let html = "";
+  if (mhdWarnungen.length > 0) {
+    html += `<div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:6px; padding:10px; margin-bottom:10px;">
+      <strong style="color:#991b1b;">⏳ Artikel laufen bald ab / sind abgelaufen:</strong>
+      <ul style="margin:6px 0 0 0; padding-left:18px;">${mhdWarnungen.join("")}</ul>
+    </div>`;
+  }
+  if (bestandWarnungen.length > 0) {
+    html += `<div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:6px; padding:10px;">
+      <strong style="color:#92400e;">📦 Kritischer Bestand (&le; ${KRITISCHER_BESTAND_GRENZE} Stk.):</strong>
+      <ul style="margin:6px 0 0 0; padding-left:18px;">${bestandWarnungen.join("")}</ul>
+    </div>`;
+  }
+
+  document.getElementById("startup-alert-content").innerHTML = html;
+  document.getElementById("startup-alert-overlay").style.display = "flex";
+}
+
+function closeStartupAlert() {
+  document.getElementById("startup-alert-overlay").style.display = "none";
+}
+
+
+
+  initNumpad();
+
+
+initApp();
+checkStartupAlerts();
+</script>
+</body>
+</html>
+
