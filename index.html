@@ -2802,25 +2802,40 @@ function kopiereBestellungAlsText() {
       grid.appendChild(btn);
     }
 
-    // Event-Listener für alle Zahlenfelder (außer MHD / Datum)
-    document.addEventListener("click", function(e) {
-      const target = e.target;
-
-
- if (target && target.tagName === "INPUT" && target.type === "number" && target.id !== "numpad-input") {
- openNumpad(target);
- }
-
+  // Auf Touch-Geräten (Tablet/Handy) System-Tastatur bei Tabellenfeldern unterdrücken
+  const isTouch = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
+  if (isTouch) {
+    document.addEventListener("focusin", function(e) {
+      const t = e.target;
+      if (t && t.tagName === "INPUT" && t.type === "number" && t.id !== "numpad-input") {
+        t.setAttribute("readonly", "readonly");
+      }
     });
   }
 
-  function openNumpad(inputEl) {
-    activeNumpadInput = inputEl;
-    const disp = document.getElementById("numpad-input");
-    disp.value = inputEl.value;
-    document.getElementById("numpad-overlay").style.display = "flex";
+  // Event-Listener für alle Zahlenfelder (außer MHD / Datum)
+  document.addEventListener("click", function(e) {
+    const target = e.target;
+    if (target && target.tagName === "INPUT" && target.type === "number" && target.id !== "numpad-input") {
+      if (document.activeElement) document.activeElement.blur();
+      openNumpad(target);
+    }
+  });
+}
+
+
+function openNumpad(inputEl) {
+  activeNumpadInput = inputEl;
+  const disp = document.getElementById("numpad-input");
+  disp.value = inputEl.value;
+  document.getElementById("numpad-overlay").style.display = "flex";
+
+  const isTouch = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
+  if (!isTouch) {
     setTimeout(() => disp.select(), 50);
   }
+}
+
 
   function selectNumpadValue(val) {
     if (!activeNumpadInput) return;
