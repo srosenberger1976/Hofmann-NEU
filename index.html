@@ -322,6 +322,10 @@ input[type="number"] {
   justify-content: center;
   align-items: center;
 }
+#numpad-overlay {
+  z-index: 3000;
+}
+
 .numpad-modal {
   background: #ffffff;
   border-radius: 10px;
@@ -1124,6 +1128,12 @@ onclick="openPlanEditorModal()">📋 Befüllzettel &amp; Pläne</button>
       <button class="btn-del" onclick="closePlanEditorModal()">X</button>
     </div>
 
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <button type="button" id="mode-btn-refill" class="btn-add" style="flex:1; background:#0f766e;" onclick="setPlanModalMode('refill')">📱 Digital befüllen (IST &amp; Aufgefüllt)</button>
+      <button type="button" id="mode-btn-edit" class="btn-add" style="flex:1; background:#475569;" onclick="setPlanModalMode('edit')">⚙️ Bestückungsplan bearbeiten &amp; Drucken</button>
+    </div>
+
+
     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #cbd5e1; margin-bottom:12px;">
       <div style="flex:1; min-width:220px;">
         <label style="font-size:0.75rem; font-weight:700; display:block; margin-bottom:3px;">Automat auswählen (zum Bearbeiten oder Drucken):</label>
@@ -1155,10 +1165,24 @@ onclick="openPlanEditorModal()">📋 Befüllzettel &amp; Pläne</button>
       </table>
     </div>
 
-    <div class="numpad-actions">
+
+
+
+
+    <div id="plan-modal-summary" style="display:none; background:#eff6ff; border:1px solid #93c5fd; border-radius:6px; padding:8px 10px; font-size:0.82rem; margin-bottom:10px; color:#1e3a8a;"></div>
+
+    <div class="numpad-actions" id="plan-modal-actions-edit">
       <button type="button" class="btn-reset" style="flex:1;" onclick="closePlanEditorModal()">Schließen</button>
       <button type="button" class="btn-print" style="flex:2;" onclick="savePlanEditorChanges()">✓ Änderungen im Plan speichern</button>
     </div>
+
+    <div class="numpad-actions" id="plan-modal-actions-refill" style="display:none; flex-wrap:wrap;">
+      <button type="button" class="btn-reset" style="flex:1; min-width:110px;" onclick="closePlanEditorModal()">Schließen</button>
+      <button type="button" class="btn-add" style="flex:1.5; min-width:150px; background:#d97706;" onclick="saveRefillDraft()">💾 Zwischenstand merken</button>
+      <button type="button" class="btn-print" style="flex:1.5; min-width:160px;" onclick="bookDigitalAutomatRefill()">✓ Befüllung verbindlich buchen</button>
+    </div>
+
+
   </div>
 </div>
 
@@ -2783,11 +2807,10 @@ function kopiereBestellungAlsText() {
       const target = e.target;
 
 
-      if (target && target.tagName === "INPUT" && target.type === "number" && target.id !== "numpad-input" && !target.classList.contains("refill-cell-input")) {
+ if (target && target.tagName === "INPUT" && target.type === "number" && target.id !== "numpad-input") {
+ openNumpad(target);
+ }
 
-
-        openNumpad(target);
-      }
     });
   }
 
@@ -3103,6 +3126,39 @@ function ensureAllPlansInitialized() {
   });
 }
 
+
+
+
+
+
+
+
+let currentPlanModalMode = "refill"; // Startet direkt im Befüll-Modus
+
+function setPlanModalMode(mode) {
+  currentPlanModalMode = mode;
+  const btnRefill = document.getElementById("mode-btn-refill");
+  const btnEdit = document.getElementById("mode-btn-edit");
+  const actEdit = document.getElementById("plan-modal-actions-edit");
+  const actRefill = document.getElementById("plan-modal-actions-refill");
+  const sumBox = document.getElementById("plan-modal-summary");
+
+  if (mode === "refill") {
+    btnRefill.style.background = "#0f766e";
+    btnEdit.style.background = "#64748b";
+    actEdit.style.display = "none";
+    actRefill.style.display = "flex";
+    sumBox.style.display = "block";
+  } else {
+    btnRefill.style.background = "#64748b";
+    btnEdit.style.background = "#1e3a8a";
+    actEdit.style.display = "flex";
+    actRefill.style.display = "none";
+    sumBox.style.display = "none";
+  }
+  renderPlanEditorTable();
+}
+
 function openPlanEditorModal() {
   ensureAllPlansInitialized();
   const sel = document.getElementById("plan-editor-select");
@@ -3122,7 +3178,7 @@ function openPlanEditorModal() {
     sel.appendChild(opt);
   });
 
-  renderPlanEditorTable();
+  setPlanModalMode("refill");
   document.getElementById("plan-editor-overlay").style.display = "flex";
 }
 
@@ -3132,14 +3188,95 @@ function closePlanEditorModal() {
 
 function renderPlanEditorTable() {
   ensureAllPlansInitialized();
+  if (!state.refillDrafts) state.refillDrafts = {};
   const val = document.getElementById("plan-editor-select").value;
   if (!val) return;
   const [type, id] = val.split(":");
+  const draft = state.refillDrafts[val] || {};
 
   const tbody = document.getElementById("plan-editor-tbody");
   const theadRow = tbody.closest("table").querySelector("thead tr");
   tbody.innerHTML = "";
 
+  // MODUS A: DIGITAL BEFÜLLEN (MIT GEMERKTEN WERTEN)
+  if (currentPlanModalMode === "refill") {
+    if (type === "SNACK") {
+      theadRow.innerHTML = `
+        <th style="width:95px; text-align:left !important;">Fach</th>
+        <th style="text-align:left !important;">Artikel (Lager ZH)</th>
+        <th style="width:55px;">Soll</th>
+        <th style="width:85px; background:#dbeafe;">IST-Rest<br><small>(Stk.)</small></th>
+        <th style="width:85px; background:#dcfce7;">Aufgefüllt<br><small>(+ Stk.)</small></th>
+        <th style="width:60px;">Neu</th>
+      `;
+      const planObj = state.plans[id] || {};
+      const rows = Object.keys(planObj)
+        .map(art => ({ order: planObj[art].order || 99, slot: planObj[art].slot || "", art: art, max: planObj[art].max || 12 }))
+        .sort((a, b) => a.order - b.order);
+
+      rows.forEach(r => {
+        const item = state.items.find(i => i.art === r.art);
+        if (!item) return;
+        const sollAut = (item.best_automaten && item.best_automaten[id]) || 0;
+        const lagerZh = item.best_zuhause || 0;
+
+        // Prüft, ob ein gemerkter Zwischenstand für dieses Fach existiert
+        const savedRow = draft[item.art];
+        const istVal = savedRow ? savedRow.ist : sollAut;
+        const addVal = savedRow ? savedRow.add : 0;
+
+        const tr = document.createElement("tr");
+        if (savedRow) tr.style.backgroundColor = "#fefce8";
+        tr.innerHTML = `
+          <td style="font-weight:700; text-align:left !important;">${r.slot}</td>
+          <td style="text-align:left !important;">
+            <strong>Art. ${item.art}</strong> – ${item.name}
+            <div style="font-size:0.74rem; color:#047857;">Zuhause: ${lagerZh} Stk. | Max: ${r.max}</div>
+          </td>
+          <td class="calc-cell">${sollAut}</td>
+          <td><input type="number" class="dig-ist refill-cell-input" data-art="${item.art}" data-soll="${sollAut}" value="${istVal}" oninput="updateDigitalRefillPreview()"></td>
+          <td><input type="number" class="dig-add refill-cell-input" data-art="${item.art}" value="${addVal}" style="border-color:#16a34a;" oninput="updateDigitalRefillPreview()"></td>
+          <td class="calc-cell dig-new-cell" style="color:#1e3a8a;">${istVal + addVal}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } else {
+      theadRow.innerHTML = `
+        <th style="width:95px; text-align:left !important;">Rondell</th>
+        <th style="text-align:left !important;">Bechersorte (Lager Zuhause)</th>
+        <th style="width:95px; background:#dbeafe;">IST-Rest<br><small>(Stg. / Info)</small></th>
+        <th style="width:95px; background:#dcfce7;">Aufgefüllt<br><small>(+ Stangen)</small></th>
+      `;
+      const slots = (state.coffeePlans[id]?.slots || []).slice().sort((a, b) => (b.rondell || 0) - (a.rondell || 0));
+      slots.forEach(s => {
+        const item = state.items.find(i => i.art === s.art);
+        const itemName = item ? item.name : "Unbekannt";
+        const lagerStg = item ? (item.stangen || 0) : 0;
+        const le = item ? (item.le || 17) : 17;
+
+        const savedSlot = draft["R" + s.rondell];
+        const istVal = savedSlot ? savedSlot.ist : 0;
+        const addVal = savedSlot ? savedSlot.add : 0;
+
+        const tr = document.createElement("tr");
+        if (savedSlot) tr.style.backgroundColor = "#fefce8";
+        tr.innerHTML = `
+          <td style="font-weight:700; text-align:left !important;">Rondell ${s.rondell}</td>
+          <td style="text-align:left !important;">
+            <strong>Art. ${s.art}</strong> – ${itemName}
+            <div style="font-size:0.74rem; color:#047857;">Lager Zuhause: ${lagerStg} Stg. (${le}er)</div>
+          </td>
+          <td><input type="number" step="0.5" class="dig-ist refill-cell-input" data-rondell="${s.rondell}" data-art="${s.art}" value="${istVal}"></td>
+          <td><input type="number" step="0.5" class="dig-add refill-cell-input" data-rondell="${s.rondell}" data-art="${s.art}" data-le="${le}" value="${addVal}" style="border-color:#16a34a;" oninput="updateDigitalRefillPreview()"></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    updateDigitalRefillPreview();
+    return;
+  }
+
+  // MODUS B: BESTÜCKUNGSPLAN BEARBEITEN (BLEIBT UNVERÄNDERT)
   if (type === "COFFEE") {
     theadRow.innerHTML = `
       <th style="width:115px; text-align:left !important;">Rondell-Nr.</th>
@@ -3196,6 +3333,7 @@ function renderPlanEditorTable() {
     });
   }
 }
+
 
 function addPlanEditorRow() {
   const val = document.getElementById("plan-editor-select").value;
@@ -3261,6 +3399,203 @@ function savePlanEditorChanges() {
   recalcAll();
   renderPlanEditorTable();
   alert("Bestückungsplan wurde erfolgreich gespeichert!");
+}
+
+// --- VORSCHAU & VERBUCHUNG FÜR DIGITALES AUTOMATEN-BEFÜLLEN ---
+function updateDigitalRefillPreview() {
+  const sumBox = document.getElementById("plan-modal-summary");
+  if (!sumBox) return;
+  const val = document.getElementById("plan-editor-select").value;
+  if (!val) return;
+  const [type] = val.split(":");
+
+  if (type === "SNACK") {
+    let gesamtVerkauft = 0;
+    let gesamtAufgefuellt = 0;
+    let warnungen = [];
+
+    document.querySelectorAll("#plan-editor-tbody tr").forEach(tr => {
+      const istInp = tr.querySelector(".dig-ist");
+      const addInp = tr.querySelector(".dig-add");
+      const newCell = tr.querySelector(".dig-new-cell");
+      if (!istInp || !addInp) return;
+
+      const art = istInp.getAttribute("data-art");
+      const soll = parseFloat(istInp.getAttribute("data-soll")) || 0;
+      const ist = parseFloat(istInp.value) || 0;
+      const add = parseFloat(addInp.value) || 0;
+
+      if (newCell) newCell.textContent = ist + add;
+      if (ist < soll) gesamtVerkauft += (soll - ist);
+      gesamtAufgefuellt += add;
+
+      const item = state.items.find(i => i.art === art);
+      const zuhause = item ? (item.best_zuhause || 0) : 0;
+      if (add > zuhause) {
+        warnungen.push(`Art. ${art} (${add} Stk. entnommen, aber nur ${zuhause} Stk. zuhause)`);
+      }
+    });
+
+    const warnHtml = warnungen.length > 0
+      ? `<div style="color:#b91c1c; font-weight:700; margin-top:4px;">⚠️ Lager-Hinweis: ${warnungen.join(" | ")}</div>`
+      : "";
+
+    sumBox.innerHTML =
+      `<strong>Vorschau Snackautomat:</strong> ` +
+      `Erkannte Verkäufe: <strong>${gesamtVerkauft} Stk.</strong> (ältestes MHD wird abgezogen) &nbsp;|&nbsp; ` +
+      `Nachgefüllt aus Zuhause: <strong>${gesamtAufgefuellt} Stk.</strong>` + warnHtml;
+  } else {
+    let gesamtStangen = 0;
+    let gesamtBecher = 0;
+    const sumByArt = {};
+
+    document.querySelectorAll("#plan-editor-tbody tr").forEach(tr => {
+      const addInp = tr.querySelector(".dig-add");
+      if (!addInp) return;
+      const art = addInp.getAttribute("data-art");
+      const le = parseFloat(addInp.getAttribute("data-le")) || 17;
+      const stg = parseFloat(addInp.value) || 0;
+      if (stg > 0) {
+        gesamtStangen += stg;
+        gesamtBecher += Math.round(stg * le);
+        sumByArt[art] = (sumByArt[art] || 0) + stg;
+      }
+    });
+
+    let warnungen = [];
+    Object.keys(sumByArt).forEach(art => {
+      const item = state.items.find(i => i.art === art);
+      const lagerStg = item ? (item.stangen || 0) : 0;
+      if (sumByArt[art] > lagerStg) {
+        warnungen.push(`Art. ${art} (${sumByArt[art]} Stg. entnommen, Lager hat nur ${lagerStg} Stg.)`);
+      }
+    });
+
+    const warnHtml = warnungen.length > 0
+      ? `<div style="color:#b91c1c; font-weight:700; margin-top:4px;">⚠️ Lager-Hinweis: ${warnungen.join(" | ")}</div>`
+      : "";
+
+    sumBox.innerHTML =
+      `<strong>Vorschau Kaffeeautomat:</strong> ` +
+      `Insgesamt aufgefüllt: <strong>${gesamtStangen} Stangen</strong> (entspricht <strong>${gesamtBecher} Bechern</strong>, werden vom Lager Zuhause abgezogen)` + warnHtml;
+  }
+}
+
+
+
+
+// --- ZWISCHENSTAND MERKEN (OHNE LAGERABZUG & OHNE HOCHRECHNUNG) ---
+function saveRefillDraft() {
+  if (!state.refillDrafts) state.refillDrafts = {};
+  const val = document.getElementById("plan-editor-select").value;
+  if (!val) return;
+  const [type] = val.split(":");
+  const draftData = {};
+
+  document.querySelectorAll("#plan-editor-tbody tr").forEach(tr => {
+    const istInp = tr.querySelector(".dig-ist");
+    const addInp = tr.querySelector(".dig-add");
+    if (!istInp || !addInp) return;
+
+    const ist = parseFloat(istInp.value) || 0;
+    const add = parseFloat(addInp.value) || 0;
+
+    if (type === "SNACK") {
+      const art = istInp.getAttribute("data-art");
+      draftData[art] = { ist: ist, add: add };
+    } else {
+      const rondell = istInp.getAttribute("data-rondell");
+      draftData["R" + rondell] = { ist: ist, add: add };
+    }
+  });
+
+  state.refillDrafts[val] = draftData;
+  saveState();
+  renderPlanEditorTable();
+  alert("Zwischenstand wurde gemerkt! Deine Zahlen bleiben erhalten und das Lager Zuhause ist noch unverändert.");
+}
+
+function bookDigitalAutomatRefill() {
+  const val = document.getElementById("plan-editor-select").value;
+  if (!val) return;
+  const [type, id] = val.split(":");
+
+  if (type === "SNACK") {
+    let gebucht = 0;
+    document.querySelectorAll("#plan-editor-tbody tr").forEach(tr => {
+      const istInp = tr.querySelector(".dig-ist");
+      const addInp = tr.querySelector(".dig-add");
+      if (!istInp || !addInp) return;
+
+      const art = istInp.getAttribute("data-art");
+      const item = state.items.find(i => i.art === art);
+      if (!item) return;
+
+      ensureItemLocations(item);
+      const vorher = item.best_automaten[id] || 0;
+      const gezahltIst = parseFloat(istInp.value) || 0;
+      const aufgefuellt = parseFloat(addInp.value) || 0;
+
+      if (gezahltIst !== vorher || aufgefuellt > 0) {
+        gebucht++;
+        if (gezahltIst < vorher) {
+          deductFromOldestMhd(item, vorher - gezahltIst, id);
+        }
+        if (aufgefuellt > 0) {
+          transferMhdHomeToAutomat(item, aufgefuellt, id);
+          item.best_zuhause = Math.max(0, (item.best_zuhause || 0) - aufgefuellt);
+          item.kartons = (item.kartons || 0) + aufgefuellt;
+        }
+        item.best_automaten[id] = gezahltIst + aufgefuellt;
+        const sumAut = Object.values(item.best_automaten).reduce((a, b) => a + (Number(b) || 0), 0);
+        item.heutiger_bestand = (Number(item.best_zuhause) || 0) + sumAut;
+      }
+    });
+
+    if (gebucht === 0) {
+      alert("Es wurden keine Änderungen eingetragen.");
+      return;
+    }
+    if (state.refillDrafts) delete state.refillDrafts[val];
+    recalcAll();
+    closePlanEditorModal();
+    alert("Snackautomat wurde erfolgreich digital befüllt und der gemerkte Zwischenstand wurde abgeschlossen!");
+  } else {
+    // Kaffeeautomat: doppelte Sorten im Rondell zusammenfassen
+    const stangenProArt = {};
+    document.querySelectorAll("#plan-editor-tbody tr").forEach(tr => {
+      const addInp = tr.querySelector(".dig-add");
+      if (!addInp) return;
+      const art = addInp.getAttribute("data-art");
+      const stg = parseFloat(addInp.value) || 0;
+      if (stg > 0) {
+        stangenProArt[art] = (stangenProArt[art] || 0) + stg;
+      }
+    });
+
+    const artKeys = Object.keys(stangenProArt);
+    if (artKeys.length === 0) {
+      alert("Bitte trage mindestens bei einem Schacht eine aufgefüllte Stangen-Menge (> 0) ein.");
+      return;
+    }
+
+    artKeys.forEach(art => {
+      const item = state.items.find(i => i.art === art);
+      if (!item) return;
+      const entnommeneStangen = stangenProArt[art];
+      const entnommeneBecher = Math.round(entnommeneStangen * (item.le || 17));
+
+      item.heutiger_bestand = Math.max(0, (item.heutiger_bestand || 0) - entnommeneBecher);
+      item.stangen = +(item.heutiger_bestand / (item.le || 17)).toFixed(2);
+      item.kartons = (item.kartons || 0) + entnommeneBecher;
+      deductFromOldestMhd(item, entnommeneBecher, "zuhause");
+    });
+
+    if (state.refillDrafts) delete state.refillDrafts[val];
+    recalcAll();
+    closePlanEditorModal();
+    alert("Kaffeeautomat wurde erfolgreich verbucht und der gemerkte Zwischenstand wurde abgeschlossen!");
+  }
 }
 
 
