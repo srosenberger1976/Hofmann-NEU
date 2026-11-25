@@ -2802,18 +2802,22 @@ function kopiereBestellungAlsText() {
       grid.appendChild(btn);
     }
 
-  // Auf Touch-Geräten (Tablet/Handy) System-Tastatur bei Tabellenfeldern unterdrücken
+  // Auf Touch-Geräten (Tablet/Handy) System-Tastatur schon beim Berühren komplett blockieren
   const isTouch = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
   if (isTouch) {
-    document.addEventListener("focusin", function(e) {
-      const t = e.target;
-      if (t && t.tagName === "INPUT" && t.type === "number" && t.id !== "numpad-input") {
-        t.setAttribute("readonly", "readonly");
+    document.addEventListener("pointerdown", function(e) {
+      const target = e.target;
+      if (target && target.tagName === "INPUT" && target.type === "number" && target.id !== "numpad-input") {
+        target.setAttribute("readonly", "readonly");
+        target.setAttribute("inputmode", "none");
+        e.preventDefault();
+        if (document.activeElement) document.activeElement.blur();
+        openNumpad(target);
       }
-    });
+    }, { passive: false });
   }
 
-  // Event-Listener für alle Zahlenfelder (außer MHD / Datum)
+  // Event-Listener für Maus / PC
   document.addEventListener("click", function(e) {
     const target = e.target;
     if (target && target.tagName === "INPUT" && target.type === "number" && target.id !== "numpad-input") {
@@ -2822,6 +2826,7 @@ function kopiereBestellungAlsText() {
     }
   });
 }
+
 
 
 function openNumpad(inputEl) {
