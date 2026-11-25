@@ -1194,6 +1194,10 @@ onclick="openPlanEditorModal()">📋 Befüllzettel &amp; Pläne</button>
       <span id="numpad-title">Menge wählen</span>
       <button class="btn-del" onclick="closeNumpad()">✕</button>
     </div>
+<div id="numpad-context" style="display:none; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:6px 10px; margin-bottom:10px; font-size:0.85rem; color:#1e293b; text-align:left; line-height:1.35;"></div>
+
+
+
     <input type="number" step="any" id="numpad-input" class="numpad-display" onkeydown="if(event.key==='Enter') confirmNumpad()">
     <div id="numpad-grid" class="numpad-grid"></div>
     <div class="numpad-actions">
@@ -2830,10 +2834,48 @@ function kopiereBestellungAlsText() {
 
 
 function openNumpad(inputEl) {
+  if (activeNumpadInput) {
+    activeNumpadInput.style.outline = "";
+    activeNumpadInput.style.backgroundColor = "";
+  }
   activeNumpadInput = inputEl;
+  activeNumpadInput.style.outline = "3px solid #2563eb";
+  activeNumpadInput.style.backgroundColor = "#eff6ff";
+  activeNumpadInput.scrollIntoView({ behavior: "smooth", block: "center" });
+
+
+
+
+
   const disp = document.getElementById("numpad-input");
   disp.value = inputEl.value;
+
+  // Aktuelles Fach, Artikel & Spalte im Popup anzeigen
+  const ctxBox = document.getElementById("numpad-context");
+  if (ctxBox) {
+    const tr = inputEl.closest("tr");
+    if (tr) {
+      const cells = tr.querySelectorAll("td");
+      let artikelText = "";
+      if (cells.length >= 2) {
+        const col0 = cells.item(0).innerText.trim().replace(/\s+/g, " ");
+        const col1 = cells.item(1).innerText.split("\n").shift().trim();
+        artikelText = `${col0} &bull; <strong>${col1}</strong>`;
+      }
+      let feldTyp = "Menge";
+      if (inputEl.classList.contains("dig-ist")) feldTyp = "🔵 IST-Rest";
+      else if (inputEl.classList.contains("dig-add")) feldTyp = "🟢 Aufgefüllt (+ Stk./Stg.)";
+
+      ctxBox.innerHTML = `<div style="font-size:0.75rem; color:#475569; font-weight:700;">${feldTyp}</div><div>${artikelText}</div>`;
+      ctxBox.style.display = "block";
+    } else {
+      ctxBox.style.display = "none";
+    }
+  }
+
+
   document.getElementById("numpad-overlay").style.display = "flex";
+
 
   const isTouch = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
   if (!isTouch) {
@@ -2842,29 +2884,83 @@ function openNumpad(inputEl) {
 }
 
 
-  function selectNumpadValue(val) {
-    if (!activeNumpadInput) return;
-    activeNumpadInput.value = val;
-    // Löst das passende Event aus (change für Tabellenfelder, input für Geldabzüge)
-    if (activeNumpadInput.onchange) {
-      activeNumpadInput.dispatchEvent(new Event("change", { bubbles: true }));
-    } else {
-      activeNumpadInput.dispatchEvent(new Event("input", { bubbles: true }));
-    }
+
+
+
+
+
+
+
+
+
+
+function jumpToNextNumberInput(currentInput) {
+  if (!currentInput) {
     closeNumpad();
+    return;
+  }
+  const tr = currentInput.closest("tr");
+  const tbody = currentInput.closest("tbody");
+  if (!tr || !tbody) {
+    closeNumpad();
+    return;
   }
 
+  // Ermittelt die Spaltenposition des aktuellen Eingabefelds
+  const allInputsInRow = Array.from(tr.querySelectorAll('input[type="number"]'));
+  const colIndex = allInputsInRow.indexOf(currentInput);
 
-  function confirmNumpad() {
-    if (!activeNumpadInput) return;
-    const val = document.getElementById("numpad-input").value;
-    selectNumpadValue(val);
+  // Sucht in den folgenden Zeilen nach dem nächsten Eingabefeld in derselben Spalte
+  let nextTr = tr.nextElementSibling;
+  while (nextTr) {
+    const nextRowInputs = Array.from(nextTr.querySelectorAll('input[type="number"]'));
+    if (nextRowInputs.length > 0) {
+      const targetNext = nextRowInputs[colIndex] || nextRowInputs[0];
+      if (targetNext && !targetNext.disabled) {
+        openNumpad(targetNext);
+        return;
+      }
+    }
+    nextTr = nextTr.nextElementSibling;
   }
 
-  function closeNumpad() {
-    document.getElementById("numpad-overlay").style.display = "none";
+  // Wenn das Ende der Liste erreicht ist, Popup schließen
+  closeNumpad();
+}
+
+function selectNumpadValue(val) {
+  if (!activeNumpadInput) return;
+  const current = activeNumpadInput;
+  current.value = val;
+  current.dispatchEvent(new Event("input", { bubbles: true }));
+  current.dispatchEvent(new Event("change", { bubbles: true }));
+  jumpToNextNumberInput(current);
+}
+
+function confirmNumpad() {
+  if (!activeNumpadInput) {
+    closeNumpad();
+    return;
+  }
+  const disp = document.getElementById("numpad-input");
+  const val = parseFloat(disp.value);
+  const current = activeNumpadInput;
+  if (!isNaN(val)) {
+    current.value = val;
+    current.dispatchEvent(new Event("input", { bubbles: true }));
+    current.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+  jumpToNextNumberInput(current);
+}
+
+function closeNumpad() {
+  if (activeNumpadInput) {
+    activeNumpadInput.style.outline = "";
+    activeNumpadInput.style.backgroundColor = "";
     activeNumpadInput = null;
   }
+  document.getElementById("numpad-overlay").style.display = "none";
+}
 
 
 
