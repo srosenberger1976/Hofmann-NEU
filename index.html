@@ -2877,8 +2877,12 @@ function kopiereBestellungAlsText() {
 
 
 
+let lastNumpadOpenTime = 0;
+
 function openNumpad(inputEl) {
+  lastNumpadOpenTime = Date.now();
   if (activeNumpadInput) {
+
     activeNumpadInput.style.outline = "";
     activeNumpadInput.style.backgroundColor = "";
   }
@@ -2973,7 +2977,9 @@ function jumpToNextNumberInput(currentInput) {
 }
 
 function selectNumpadValue(val) {
+  if (Date.now() - lastNumpadOpenTime < 350) return;
   if (!activeNumpadInput) return;
+
   const current = activeNumpadInput;
   current.value = val;
   current.dispatchEvent(new Event("input", { bubbles: true }));
@@ -2998,7 +3004,9 @@ function confirmNumpad() {
 }
 
 function closeNumpad() {
+  if (Date.now() - lastNumpadOpenTime < 350) return;
   if (activeNumpadInput) {
+
     activeNumpadInput.style.outline = "";
     activeNumpadInput.style.backgroundColor = "";
     activeNumpadInput = null;
