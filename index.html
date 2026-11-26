@@ -3,8 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AHOI-Abrechnung & Warenwirtschaft (Lieferschein 8367/1A)</title>
+<title>AHOI-Abrechnung &amp; Warenwirtschaft (Lieferschein 8367/1A)</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
 <style>
+
 :root {
   --bg: #f1f5f9;
   --paper: #ffffff;
@@ -3915,12 +3918,73 @@ function closeStartupAlert() {
 
 
 
-  initNumpad();
-
-
+initNumpad();
 initApp();
 checkStartupAlerts();
 </script>
+<!-- AUTOMATISCHE INSTALLATIONS-AUFFORDERUNG (PWA) -->
+<div id="pwa-install-banner" class="no-print" style="display:none; position:fixed; bottom:16px; left:50%; transform:translateX(-50%); width:92%; max-width:520px; background:#0f172a; color:#ffffff; padding:14px 16px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.35); z-index:9999; border:2px solid #38bdf8;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+    <div>
+      <div style="font-weight:700; font-size:0.95rem; color:#38bdf8; margin-bottom:4px;">📲 App auf diesem Gerät installieren</div>
+      <div id="pwa-install-text" style="font-size:0.82rem; color:#e2e8f0; line-height:1.4;">
+        Installiere die AHOI-App für Vollbild-Ansicht und Offline-Nutzung am Automaten.
+      </div>
+    </div>
+    <button type="button" onclick="dismissPwaBanner()" style="background:transparent; color:#94a3b8; border:none; font-size:1.1rem; padding:0 4px; cursor:pointer;">✕</button>
+  </div>
+  <div id="pwa-install-actions" style="margin-top:10px; display:flex; gap:8px;">
+    <button type="button" id="pwa-install-btn" class="btn-print" style="flex:1; padding:8px 12px;" onclick="triggerPwaInstall()">Jetzt installieren</button>
+    <button type="button" class="btn-reset" style="padding:8px 12px;" onclick="dismissPwaBanner()">Später</button>
+  </div>
+</div>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js");
+}
+
+let deferredPwaPrompt = null;
+
+function isAppAlreadyInstalled() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function dismissPwaBanner() {
+  document.getElementById("pwa-install-banner").style.display = "none";
+  sessionStorage.setItem("pwaBannerDismissed", "1");
+}
+
+// 1. Android / Chrome / Edge: Automatischer Install-Button
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPwaPrompt = e;
+  if (!isAppAlreadyInstalled() && !sessionStorage.getItem("pwaBannerDismissed")) {
+    document.getElementById("pwa-install-banner").style.display = "block";
+  }
+});
+
+async function triggerPwaInstall() {
+  if (!deferredPwaPrompt) return;
+  deferredPwaPrompt.prompt();
+  const result = await deferredPwaPrompt.userChoice;
+  if (result.outcome === "accepted") {
+    document.getElementById("pwa-install-banner").style.display = "none";
+  }
+  deferredPwaPrompt = null;
+}
+
+// 2. iPad / iPhone (Safari): Automatischer Hinweis für "Zum Home-Bildschirm"
+window.addEventListener("load", () => {
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isIos && !isAppAlreadyInstalled() && !sessionStorage.getItem("pwaBannerDismissed")) {
+    document.getElementById("pwa-install-text").innerHTML =
+      "Tippe in Safari auf das <strong>Teilen-Symbol (Viereck mit Pfeil ⬆️)</strong> und wähle <strong>„Zum Home-Bildschirm“</strong>.";
+    document.getElementById("pwa-install-btn").style.display = "none";
+    document.getElementById("pwa-install-banner").style.display = "block";
+  }
+});
+</script>
+
 </body>
 </html>
-
