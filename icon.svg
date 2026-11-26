@@ -1,0 +1,6 @@
+<svg xmlns="http://w3.org" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#0f172a"/>
+  <rect x="28" y="28" width="456" height="456" rx="90" fill="none" stroke="#38bdf8" stroke-width="10"/>
+  <text x="256" y="235" font-family="Arial, sans-serif" font-weight="900" font-size="135" fill="#ffffff" text-anchor="middle">AHOI</text>
+  <text x="256" y="345" font-family="Arial, sans-serif" font-weight="700" font-size="52" fill="#38bdf8" text-anchor="middle">AUTOMATEN</text>
+</svg>
