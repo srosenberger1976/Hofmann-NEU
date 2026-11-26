@@ -251,7 +251,7 @@ th {
 top: 0;
 }
 
-/* 1-30 Schnellauswahl-Popup (Taschenrechner) als Vollbild über das ganze Display */
+/* 1-30 Schnellauswahl-Popup (Taschenrechner) als Vollbild mit großer Handy-Schrift */
 #numpad-overlay {
   padding: 0 !important;
   margin: 0 !important;
@@ -274,20 +274,66 @@ top: 0;
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
-  padding: 16px !important;
+  padding: 18px !important;
   box-sizing: border-box !important;
+}
+#numpad-overlay .numpad-header {
+  font-size: 1.5rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 10px !important;
+}
+#numpad-overlay .numpad-header .btn-del {
+  font-size: 1.4rem !important;
+  padding: 10px 20px !important;
+}
+#numpad-overlay #numpad-context {
+  font-size: 1.45rem !important;
+  padding: 14px 16px !important;
+  background: #e0f2fe !important;
+  border: 2px solid #0284c7 !important;
+  color: #0f172a !important;
+  margin-bottom: 12px !important;
+  line-height: 1.35 !important;
+}
+#numpad-overlay #numpad-context > div:first-child {
+  font-size: 1.2rem !important;
+  color: #0369a1 !important;
+  margin-bottom: 4px !important;
+}
+#numpad-overlay #numpad-input {
+  font-size: 2.2rem !important;
+  font-weight: 800 !important;
+  height: 64px !important;
+  border: 2px solid #64748b !important;
+  margin-bottom: 12px !important;
 }
 #numpad-overlay #numpad-grid {
   flex: 1 !important;
   display: grid !important;
   grid-template-columns: repeat(5, 1fr) !important;
-  gap: 10px !important;
-  margin: 12px 0 !important;
+  gap: 12px !important;
+  margin: 10px 0 !important;
 }
 #numpad-overlay .numpad-btn {
   height: 100% !important;
-  font-size: 1.4rem !important;
+  font-size: 2.1rem !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
+  border: 2px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+}
+#numpad-overlay .numpad-btn:first-child {
+  font-size: 1.45rem !important;
+  background: #fee2e2 !important;
+  border-color: #f87171 !important;
+  color: #991b1b !important;
+}
+#numpad-overlay .numpad-actions button {
+  font-size: 1.5rem !important;
   font-weight: 700 !important;
+  padding: 18px !important;
+  border-radius: 10px !important;
 }
 
 tr:nth-child(even) {
